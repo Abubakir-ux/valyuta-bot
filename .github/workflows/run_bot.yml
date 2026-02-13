@@ -1,0 +1,26 @@
+name: Valyuta Bot
+
+on:
+  schedule:
+    # UTC vaqti bilan: 04:00 (9:00 UZ), 08:00 (13:00 UZ), 13:00 (18:00 UZ)
+    - cron: '0 4,8,13 * * *'
+  workflow_dispatch: # Bu tugma botni qo'lda ham ishlatishga imkon beradi
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run bot
+        run: python main.py
