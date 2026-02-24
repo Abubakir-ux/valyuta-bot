@@ -109,31 +109,31 @@ def run_bot():
         vaqt = time.strftime('%d.%m.%Y %H:%M')
 
         xabar = (
-            f"<b>🏦 KUNLIK VALYUTA NARXLARI ($)</b>\n"
-            f"— — — — — — — — — — — — — — —\n"
-            f"🏛 Bank nomi          | Xarid | Sotuv\n"
-            f"— — — — — — — — — — — — — — —\n"
-            f"🏙 Ipak Yo'li        | {iy_x.strip():<5} | {iy_s.strip()}\n"
-            f"🏙 Turon Bank       | {tb_x.strip():<5} | {tb_s.strip()}\n"
-            f"🏙 Hamkor Bank      | {hm_x.strip():<5} | {hm_s.strip()}\n"
-            f"🏙 NBU Bank         | {nb_x.strip():<5} | {nb_s.strip()}\n"
-            f"🏙 Aloqa Bank       | {al_x.strip():<5} | {al_s.strip()}\n"
-            f"🏙 Xalq Bank        | {xq_x.strip():<5} | {xq_s.strip()}\n"
-            f"🏙 Trast Bank       | {tr_x.strip():<5} | {tr_s.strip()}\n"
-            f"🏙 Mikro Bank       | {mb_x.strip():<5} | {mb_s.strip()}\n"
-            f"🏙 Ipoteka Bank     | {ip_x.strip():<5} | {ip_s.strip()}\n"
-            f"🏙 Octo Bank        | {oc_x.strip():<5} | {oc_s.strip()}\n"
-            f"— — — — — — — — — — — — — — —\n"
-            f"<blockquote>Eng yaxshi: | {eng_y_x} | {eng_y_s} 📈</blockquote>\n"
-            f"<b>💰 Quyma oltin narxlari:</b>\n"
-            f"🟡 5 грамм:  {quyma_oltin_5g}\n"
-            f"🟡 10 грамм:  {quyma_oltin_10g}\n"
-            f"🟡 20 грамм:  {quyma_oltin_20g}\n"
-            f"🟡 50 грамм:  {quyma_oltin_50g}\n"
-            f"🟡 100 грамм: {quyma_oltin_100g}\n\n"
-            f"🕒 <b>Yangilandi:</b> {vaqt}\n"
-            f" Bu ma'lumotlar rasmiy saytlardan olindi !\n"
-            f"📢 @dollorkurslariUZ"
+        f"<b>🏦 KUNLIK VALYUTA NARXLARI ($)</b>\n"
+        f"— — — — — — — — — — — — — — —\n"
+        f"🏛 Bank nomi          |  Xarid  |  Sotuv \n"
+        f"— — — — — — — — — — — — — — —\n"
+        f"🏙 <a href='https://ipakyulibank.uz/physical'>Ipak Yo'li      </a>       | {iy_x.strip():<5} | {iy_s.strip()}\n"
+        f"🏙 <a href='https://turonbank.uz/uz/'>Turon Bank   </a>     | {tb_x.strip():<5} | {tb_s.strip()}\n"
+        f"🏙 <a href='https://hamkorbank.uz/uz/'>Hamkor Bank   </a> | {hm_x.strip():<5} | {hm_s.strip()}\n"
+        f"🏙 <a href='https://nbu.uz/'>NBU Bank          </a> | {nb_x.strip():<5} | {nb_s.strip()}\n"
+        f"🏙 <a href='https://aloqabank.uz/ru/services/exchange-rates/'>Aloqa Bank        </a> | {al_x.strip():<5} | {al_s.strip()}\n"
+        f"🏙 <a href='https://xb.uz/'>Xalq Bank       </a>     | {xq_x.strip():<5} | {xq_s.strip()}\n"
+        f"🏙 <a href='https://trustbank.uz/uz/'>Trast Bank        </a>   | {tr_x.strip():<5} | {tr_s.strip()}\n"
+        f"🏙 <a href='https://mkbank.uz/uz/'>Mikro Bank      </a>   | {mb_x.strip():<5} | {mb_s.strip()}\n"
+        f"🏙 <a href='https://www.ipotekabank.uz/ru/private/services/currency/'>Ipoteka Bank    </a> | {ip_x.strip():<5} | {ip_s.strip()}\n"
+        f"🏙 <a href='https://octobank.uz/uz'>Octo Bank      </a>     | {oc_x.strip():<5} | {oc_s.strip()}\n"
+        f"— — — — — — — — — — — — — — —\n"
+        f"<blockquote>Eng yaxshi narx: | {eng_y_x} | {eng_y_s} 📈</blockquote>\n"
+        f"<b>💰 Quyma oltin narxlari:</b>\n"
+        f"🟡 5 грамм:  {quyma_oltin_5g}\n"
+        f"🟡 10 грамм:  {quyma_oltin_10g}\n"
+        f"🟡 20 грамм:  {quyma_oltin_20g}\n"
+        f"🟡 50 грамм:  {quyma_oltin_50g}\n"
+        f"🟡 100 грамм: {quyma_oltin_100g}\n"
+        f"🕒 <b>Yangilandi:</b> {vaqt}\n\n"
+        f"Bu ma'lumotlar Banklarning rasmiy saytlaridan olingan !\n"
+        f"📢 @dollorkurslariUZ — tezkor va aniq"
         )
 
         resp = requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", 
@@ -151,3 +151,4 @@ def run_bot():
 
 if __name__ == "__main__":
     run_bot()
+
