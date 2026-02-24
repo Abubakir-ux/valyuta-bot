@@ -7,12 +7,19 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import time
+import json 
 import os
 
 # Konfiguratsiya
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8592762047:AAGyO5OxRoBi1nZzcN0jXz9IeeVrtgl4Q6c")
 CHAT_ID = os.environ.get("CHAT_ID", "-1003805780800")
 
+def load_users():
+    if os.path.exists("users.json"):
+        with open("users.json", "r") as f:
+            return json.load(f)
+    return {}
+    
 def tozalash(matn):
     if not matn or matn.strip() == "":
         return 0
@@ -32,6 +39,14 @@ def run_bot():
     driver = webdriver.Chrome(service=service, options=chrome_options)
     wait = WebDriverWait(driver, 60)
 
+    users = load_users()
+    
+    for user_id, limit_price in users.items():
+        if min_sotuv <= limit_price:
+            # SHAXSIY XABAR YUBORISH
+            msg = f"🔔 <b>Siz kutgan narx keldi!</b>\nDollar hozir: {min_sotuv} so'm"
+            requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", 
+                         data={"chat_id": user_id, "text": msg, "parse_mode": "HTML"})
     try:
         # Banklardan ma'lumot olish (Sening kodingdagidek qoldi)
         print("Banklar tekshirilmoqda...")
@@ -151,5 +166,6 @@ def run_bot():
 
 if __name__ == "__main__":
     run_bot()
+
 
 
