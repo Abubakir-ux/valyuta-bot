@@ -4,11 +4,14 @@ on:
   schedule:
     # UTC vaqti bilan: 04:00 (9:00 UZ), 08:00 (13:00 UZ), 13:00 (18:00 UZ)
     - cron: '0 4,8,13 * * *'
-  workflow_dispatch: # Bu tugma botni qo'lda ham ishlatishga imkon beradi
+  workflow_dispatch: 
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions: # BU JUDA MUHIM
+      contents: write
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,8 +23,18 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install requests selenium webdriver-manager
 
       - name: Run bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
         run: python main.py
 
+      - name: Commit and push changes # Faylni saqlash qismi
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "action@github.com"
+          git add oxirgi_narxlar.json
+          git commit -m "Narxlar xotirasi yangilandi" || exit 0
+          git push
