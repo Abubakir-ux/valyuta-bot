@@ -76,8 +76,8 @@ def run_bot():
         # 4. NBU
         driver.get("https://nbu.uz/jismoniy-shaxslar-valyutalar-kursi")
         time.sleep(10)
-        nb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="02"]/div/div/div/div[1]/div[2]/div[2]/div[2]/div'))).text
-        nb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="w-node-b74b34b0-2973-298a-2b6d-79ba92bf482f-92bf4808"]/div'))).text
+        nb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="02"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div'))).text
+        nb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="02"]/div/div/div/div[1]/div[2]/div[1]/div[3]/div'))).text
 
         # 5. Aloqa Bank
         driver.get("https://aloqabank.uz/ru/services/exchange-rates/")
@@ -100,8 +100,8 @@ def run_bot():
         # 8. MK Bank
         driver.get("https://mkbank.uz/uz/")
         time.sleep(12)
-        mb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="top"]/div[2]/div[1]/header[2]/div/div/noindex[1]/div/div[1]/div[2]/div[1]/div[2]/div[1]'))).text
-        mb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="top"]/div[2]/div[1]/header[2]/div/div/noindex[1]/div/div[1]/div[2]/div[2]/div[2]/div[1]'))).text
+        mb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="js-main-page"]/div[1]/div/div/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[2]/div/span'))).text
+        mb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="js-main-page"]/div[1]/div/div/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[3]/div/span'))).text
 
         # 9. Ipoteka Bank
         driver.get("https://www.ipotekabank.uz/ru/private/services/currency/")
@@ -184,3 +184,4 @@ def run_bot():
 
 if __name__ == "__main__":
     run_bot()
+
