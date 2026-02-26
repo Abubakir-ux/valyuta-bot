@@ -25,12 +25,3 @@ jobs:
       - name: Run bot
         run: python main.py
 
-- name: Commit and push changes
-      run: |
-        git config --global user.name "github-actions"
-        git config --global user.email "action@github.com"
-        git add oxirgi_narxlar.json
-        git commit -m "Narxlar xotirasi yangilandi" || exit 0
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
