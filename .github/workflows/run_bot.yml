@@ -1,16 +1,15 @@
 name: Valyuta Bot
 
 on:
+  workflow_dispatch:
   schedule:
-    # UTC vaqti bilan: 04:00 (9:00 UZ), 08:00 (13:00 UZ), 13:00 (18:00 UZ)
-    - cron: '0 4,8,13 * * *'
-  workflow_dispatch: 
+    - cron: '0 9 * * *' # Har kuni soat 9:00 da
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions: # BU JUDA MUHIM
-      contents: write
+    permissions:
+      contents: write # JSON faylni saqlash uchun ruxsat
     
     steps:
       - name: Checkout code
@@ -31,7 +30,7 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
         run: python main.py
 
-      - name: Commit and push changes # Faylni saqlash qismi
+      - name: Commit and push changes
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "action@github.com"
