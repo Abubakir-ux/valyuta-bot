@@ -53,8 +53,8 @@ def run_bot():
 
         driver.get("https://nbu.uz/jismoniy-shaxslar-valyutalar-kursi")
         time.sleep(10)
-        nb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="02"]/div/div/div/div[1]/div[2]/div[2]/div[2]/div'))).text
-        nb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="w-node-b74b34b0-2973-298a-2b6d-79ba92bf482f-92bf4808"]/div'))).text
+        nb_x = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div[1]/div[2]/div/div/div/div[1]/div[2]/div[1]/div/a[3]/div[2]/div[2]/div[1]'))).text
+        nb_s = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div[1]/div[2]/div/div/div/div[1]/div[2]/div[1]/div/a[2]/div[3]/div[2]/div[1]'))).text
 
         driver.get("https://aloqabank.uz/ru/services/exchange-rates/")
         time.sleep(15)
@@ -151,3 +151,4 @@ def run_bot():
 
 if __name__ == "__main__":
     run_bot()
+
