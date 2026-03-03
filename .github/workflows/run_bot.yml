@@ -9,6 +9,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Faylni qayta yozish uchun ruxsat berish
+    permissions:
+      contents: write
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -24,3 +28,17 @@ jobs:
 
       - name: Run bot
         run: python main.py
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+
+      # --- MANA SHU QISMI ESKI NARXNI SAQLAB QOLADI ---
+      - name: Commit and push if changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add oxirgi_narxlar.json || echo "Fayl topilmadi"
+          git commit -m "Ertaga solishtirish uchun narxlar saqlandi" || echo "O'zgarish yo'q"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
