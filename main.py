@@ -8,6 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 import os
+import json 
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8592762047:AAGyO5OxRoBi1nZzcN0jXz9IeeVrtgl4Q6c")
 CHAT_ID = os.environ.get("CHAT_ID", "-1003805780800")
@@ -17,6 +18,27 @@ def tozalash(matn):
         return 0
     toza_son = "".join(filter(str.isdigit, matn))
     return int(toza_son) if toza_son else 0
+
+def yuklash():
+    if os.path.exists("kurs.json"):
+        with open("kurs.json", "r") as f:
+            return json.load(f) 
+    return {}
+
+
+def strelka_top(bugungi_narx, bank_nomi, eski_baza):
+    kechagi_narx = int(eski_baza.get(bank_nomi, 0))
+    bugun = int(bugungi_narx)
+
+    if kechagi_narx == 0: return "➖" 
+    if bugun > kechagi_narx: return "🔺" 
+    if bugun < kechagi_narx: return "🔻"
+    return "➖" 
+
+# 3. Yangi narxni saqlash
+def saqlash(yangi_baza):
+    with open("kurs.json", "w") as f:
+        json.dump(yangi_baza, f)
 
 def run_bot():
     print("Bot ishga tushdi...")
@@ -147,5 +169,6 @@ def run_bot():
 
 if __name__ == "__main__":
     run_bot()
+
 
 
