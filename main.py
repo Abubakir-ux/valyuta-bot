@@ -9,7 +9,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 import os
 
-# Konfiguratsiya
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8592762047:AAGyO5OxRoBi1nZzcN0jXz9IeeVrtgl4Q6c")
 CHAT_ID = os.environ.get("CHAT_ID", "-1003805780800")
 
@@ -33,7 +32,6 @@ def run_bot():
     wait = WebDriverWait(driver, 60)
 
     try:
-        # Banklardan ma'lumot olish (Sening kodingdagidek qoldi)
         print("Banklar tekshirilmoqda...")
         
         driver.get("https://ipakyulibank.uz/physical")
@@ -53,8 +51,8 @@ def run_bot():
 
         driver.get("https://nbu.uz/jismoniy-shaxslar-valyutalar-kursi")
         time.sleep(10)
-        nb_x = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div[1]/div[2]/div/div/div/div[1]/div[2]/div[1]/div/a[3]/div[2]/div[2]/div[1]'))).text
-        nb_s = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div[1]/div[2]/div/div/div/div[1]/div[2]/div[1]/div/a[2]/div[3]/div[2]/div[1]'))).text
+        nb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="02"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div'))).text
+        nb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="02"]/div/div/div/div[1]/div[2]/div[1]/div[3]/div'))).text
 
         driver.get("https://aloqabank.uz/ru/services/exchange-rates/")
         time.sleep(15)
@@ -86,18 +84,16 @@ def run_bot():
         oc_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="w-node-_23a24b74-a88d-5f36-44f5-45399e0decee-9e0dece1"]/div[2]/div/div[1]/p'))).text
         oc_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="w-node-_23a24b74-a88d-5f36-44f5-45399e0decee-9e0dece1"]/div[2]/div/div[2]/p'))).text
 
-        # Oltin narxlari
         print("Oltin narxlari...")
         driver.get("https://cbu.uz/oz/banknotes-coins/gold-bars/prices/")
         time.sleep(15)
-        # O'zgaruvchi nomlarini xabar ichidagiga mosladim:
+
         quyma_oltin_5g = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[3]/td[2]/p'))).text
         quyma_oltin_10g = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[4]/td[2]/p'))).text
         quyma_oltin_20g = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[5]/td[2]/p'))).text
         quyma_oltin_50g = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[6]/td[2]/p'))).text
         quyma_oltin_100g = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[7]/td[2]/p'))).text
 
-        # Hisob-kitoblar
         x_list = [tozalash(iy_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(mb_x), tozalash(ip_x), tozalash(oc_x)]
         s_list = [tozalash(iy_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(mb_s), tozalash(ip_s), tozalash(oc_s)]
 
@@ -151,4 +147,5 @@ def run_bot():
 
 if __name__ == "__main__":
     run_bot()
+
 
