@@ -11,7 +11,7 @@ import os
 import json 
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "8592762047:AAGyO5OxRoBi1nZzcN0jXz9IeeVrtgl4Q6c")
-CHAT_ID = os.environ.get("CHAT_ID", "-1003805780800")
+CHAT_ID = os.environ.get("CHAT_ID", "1003805780800")
 
 def tozalash(matn):
     if not matn or matn.strip() == "":
@@ -148,6 +148,7 @@ def run_bot():
 
 if __name__ == "__main__":
     run_bot()
+
 
 
 
