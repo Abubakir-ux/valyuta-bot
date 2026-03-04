@@ -4,14 +4,13 @@ on:
   schedule:
     # UTC vaqti bilan: 04:00 (9:00 UZ), 08:00 (13:00 UZ), 13:00 (18:00 UZ)
     - cron: '0 4,8,13 * * *'
-  workflow_dispatch: # Bu tugma botni qo'lda ham ishlatishga imkon beradi
+  workflow_dispatch: 
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Faylni qayta yozish uchun ruxsat berish
     permissions:
-      contents: write
+      contents: write # Bu juda muhim! Faylni saqlashga ruxsat beradi.
       
     steps:
       - name: Checkout code
@@ -32,13 +31,11 @@ jobs:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
 
-      # --- MANA SHU QISMI ESKI NARXNI SAQLAB QOLADI ---
-      - name: Commit and push if changes
+      # --- JSON FAYLNI SAQLASH ---
+      - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add oxirgi_narxlar.json || echo "Fayl topilmadi"
+          git add data.json
           git commit -m "Ertaga solishtirish uchun narxlar saqlandi" || echo "O'zgarish yo'q"
           git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
