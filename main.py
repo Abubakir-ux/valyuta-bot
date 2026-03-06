@@ -36,62 +36,51 @@ def run_bot():
 
     try:
         print("Banklar tekshirilmoqda...")
-        
-        # 1. Ipak Yo'li
         driver.get("https://ipakyulibank.uz/physical")
         time.sleep(12)
         iy_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="124"]/div[2]/div/div[2]/table/tbody/tr[1]/td[2]'))).text
         iy_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="124"]/div[2]/div/div[2]/table/tbody/tr[1]/td[3]'))).text
 
-        # 2. Turon Bank
         driver.get("https://turonbank.uz/uz/")
         time.sleep(15)
         tb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="js-main-page"]/div[1]/div/div/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[2]/div/span'))).text
         tb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="js-main-page"]/div[1]/div/div/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[3]/div/span'))).text
 
-        # 3. Hamkor Bank
         driver.get("https://hamkorbank.uz/uz/exchange-rate/")
         time.sleep(12)
         hm_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="block_mAWMGK"]/div/div[4]/div[2]/div[2]/div[2]'))).text
         hm_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="block_mAWMGK"]/div/div[4]/div[2]/div[3]/div[2]'))).text
 
-        # 4. NBU
         driver.get("https://nbu.uz/jismoniy-shaxslar-valyutalar-kursi")
         time.sleep(10)
         nb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="02"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div'))).text
         nb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="02"]/div/div/div/div[1]/div[2]/div[1]/div[3]/div'))).text
 
-        # 5. Aloqa Bank
         driver.get("https://aloqabank.uz/ru/services/exchange-rates/")
         time.sleep(15)
         al_x = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[5]/div/div[2]/div[1]/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[2]/div/span'))).text
         al_s = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[5]/div/div[2]/div[1]/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[3]/div/span'))).text
 
-        # 6. Xalq Bank
         driver.get("https://xb.uz/page/valyuta-ayirboshlash")
         time.sleep(12)
         xq_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div[2]/main/div/div/div[3]/div[2]/div[2]/div/div[2]/div[1]/div/div[3]/div/div/p'))).text
         xq_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="__next"]/div[2]/main/div/div/div[3]/div[2]/div[2]/div/div[2]/div[1]/div/div[2]/div/p'))).text
 
-        # 7. Trast Bank
         driver.get("https://trustbank.uz/uz/")
         time.sleep(15)
         tr_x = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[4]/section[2]/div/div/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody/tr[2]/td[2]/div/span'))).text
         tr_s = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[4]/section[2]/div/div/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody/tr[2]/td[3]/div/span'))).text
 
-        # 8. Mikro Bank
         driver.get("https://mkbank.uz/uz/")
         time.sleep(12)
         mb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="top"]/div[2]/div[1]/header[2]/div/div/noindex[1]/div/div[1]/div[2]/div[1]/div[2]/div[1]'))).text
         mb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="top"]/div[2]/div[1]/header[2]/div/div/noindex[1]/div/div[1]/div[2]/div[2]/div[2]/div[1]'))).text
 
-        # 9. Ipoteka Bank
         driver.get("https://www.ipotekabank.uz/ru/private/services/currency/")
         time.sleep(15)
         ip_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="all"]/div/table/tbody/tr[1]/td[2]'))).text
         ip_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="all"]/div/table/tbody/tr[1]/td[3]'))).text
 
-        # 10. Octo Bank
         driver.get("https://octobank.uz/uz")
         time.sleep(12)
         oc_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="w-node-_23a24b74-a88d-5f36-44f5-45399e0decee-9e0dece1"]/div[2]/div/div[1]/p'))).text
@@ -106,16 +95,11 @@ def run_bot():
         quyma_oltin_50g = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[6]/td[2]/p'))).text
         quyma_oltin_100g = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[7]/td[2]/p'))).text
 
-        # Ma'lumotlarni hisoblash
         x_list = [tozalash(iy_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(mb_x), tozalash(ip_x), tozalash(oc_x)]
         s_list = [tozalash(iy_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(mb_s), tozalash(ip_s), tozalash(oc_s)]
 
         x_filtr = [i for i in x_list if i > 10000]
         s_filtr = [i for i in s_list if i > 10000]
-
-        # Trend (strelka) ni aniqlash (o'rtacha kurs bo'yicha)
-        avg_current = sum(s_filtr) / len(s_filtr) if s_filtr else 0
-        trend_arrow = get_trend_emoji(avg_current)
 
         eng_y_x = f"{max(x_filtr):,}".replace(",", " ") if x_filtr else "0"
         eng_y_s = f"{min(s_filtr):,}".replace(",", " ") if s_filtr else "0"
