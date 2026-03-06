@@ -41,5 +41,9 @@ jobs:
           git add oxirgi_narxlar.json || echo "Fayl topilmadi"
           git commit -m "Ertaga solishtirish uchun narxlar saqlandi" || echo "O'zgarish yo'q"
           git push
+          python -m pip install --upgrade pip
+          pip install selenium requests webdriver-manager python-dotenv
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
