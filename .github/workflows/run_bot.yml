@@ -1,32 +1,44 @@
-name: Valyuta 
+name: Valyuta Bot
 
 on:
   schedule:
-    - cron: '0 9 * * *' # Har kuni soat 9:00 da (UTC)
-  workflow_dispatch: # Qo'lda yurgizish uchun
+    # UTC vaqti bilan: 04:00 (9:00 UZ), 08:00 (13:00 UZ), 13:00 (18:00 UZ)
+    - cron: '0 4,8,13 * * *'
+  workflow_dispatch: # Bu tugma botni qo'lda ham ishlatishga imkon beradi
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Faylni qayta yozish uchun ruxsat berish
+    permissions:
+      contents: write
+      
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 # kerakli kutubxonalar
-
-      - name: Run Scraper
-        run: python main.py
-
-      - name: Commit and Push changes
         run: |
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
-          git add data.json
-          git commit -m "Kurs yangilandi: $(date)" || echo "O'zgarish yo'q"
+          pip install -r requirements.txt
+
+      - name: Run bot
+        run: python main.py
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+
+      # --- MANA SHU QISMI ESKI NARXNI SAQLAB QOLADI ---
+      - name: Commit and push if changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add oxirgi_narxlar.json || echo "Fayl topilmadi"
+          git commit -m "Ertaga solishtirish uchun narxlar saqlandi" || echo "O'zgarish yo'q"
           git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
