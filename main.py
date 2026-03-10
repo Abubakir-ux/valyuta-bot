@@ -29,10 +29,10 @@ chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64
 
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
-wait = WebDriverWait(driver, 60) # Vaqtni biroz uzaytirdik
+wait = WebDriverWait(driver, 180) # Vaqtni biroz uzaytirdik
 
 try:
-    # --- Ipak Yo'li ---
+
     print("Ipak Yo'li...")
     driver.get("https://ipakyulibank.uz/physical")
     time.sleep(15)
