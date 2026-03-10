@@ -9,8 +9,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
+BOT_TOKEN = os.getenv("8592762047:AAGyO5OxRoBi1nZzcN0jXz9IeeVrtgl4Q6c")
+CHAT_ID = os.getenv("-1003805780800")
 
 def tozalash(matn):
     """Xatolikka chidamli tozalash funksiyasi"""
