@@ -30,7 +30,7 @@ def run_bot():
     
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
-    wait = WebDriverWait(driver, 60)
+    wait = WebDriverWait(driver, 120)
 
     try:
 
