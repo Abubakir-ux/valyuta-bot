@@ -1,44 +1,35 @@
-name: Valyuta Bot
+name: Valyuta Botini Ishlatish
 
 on:
   schedule:
-    # UTC vaqti bilan: 04:00 (9:00 UZ), 08:00 (13:00 UZ), 13:00 (18:00 UZ)
+    # Vaqtlar UTC da belgilanadi. O'zbekiston UTC+5
+    # 9:00 UZT  = 04:00 UTC
+    # 13:00 UZT = 08:00 UTC
+    # 18:00 UZT = 13:00 UTC
     - cron: '0 4,8,13 * * *'
-  workflow_dispatch: # Bu tugma botni qo'lda ham ishlatishga imkon beradi
+  
+  # GitHub saytidan "Run workflow" tugmasini bosib qo'lda ishlatish uchun:
+  workflow_dispatch:
 
 jobs:
-  build:
+  run-bot:
     runs-on: ubuntu-latest
-    # Faylni qayta yozish uchun ruxsat berish
-    permissions:
-      contents: write
-      
+
     steps:
-      - name: Checkout code
+      - name: Kodni yuklab olish
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Pythonni o'rnatish
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: Install dependencies
+      - name: Kutubxonalarni o'rnatish
         run: |
           pip install -r requirements.txt
 
-      - name: Run bot
-        run: python main.py
+      - name: Botni ishga tushirish
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-
-      # --- MANA SHU QISMI ESKI NARXNI SAQLAB QOLADI ---
-      - name: Commit and push if changes
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add oxirgi_narxlar.json || echo "Fayl topilmadi"
-          git commit -m "Ertaga solishtirish uchun narxlar saqlandi" || echo "O'zgarish yo'q"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python main.py
