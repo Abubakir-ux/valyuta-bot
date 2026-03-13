@@ -138,7 +138,7 @@ try:
         f"🏙 <a href='https://www.ipotekabank.uz/ru/private/services/currency/'>Ipoteka Bank    </a> | {ip_x.strip():<5} | {ip_s.strip()}\n"
         f"🏙 <a href='https://octobank.uz/uz'>Octo Bank      </a>     | {oc_x.strip():<5} | {oc_s.strip()}\n"
         f"— — — — — — — — — — — — — — —\n"
-        f"<blockquote>Eng yaxshi narx: | {eng_y_x} | {eng_y_s} 📈</blockquote>\n"
+        f"<blockquote>Eng yaxshi narx: | {ey_x} | {ey_s} 📈</blockquote>\n"
         f"<b>💰 Quyma oltin narxlari:</b>\n"
         f"🟡 5 грамм:  {oltin_5}\n"
         f"🟡 10 грамм:  {oltin_10}\n"
