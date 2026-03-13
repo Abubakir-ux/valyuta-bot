@@ -22,15 +22,19 @@ def tozalash(matn):
 
 # --- BRAUZERNI SOZLASH ---
 chrome_options = Options()
-chrome_options.add_argument("--headless") 
+chrome_options.add_argument("--headless=new") # Yangi headless rejim
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 chrome_options.add_argument("--disable-gpu")
-chrome_options.add_argument("--window-size=1920,1080")
+chrome_options.add_argument("--proxy-server='direct://'")
+chrome_options.add_argument("--proxy-bypass-list=*")
+chrome_options.add_argument("--start-maximized")
+chrome_options.add_argument("--disable-extensions")
 chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36")
 
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
+driver.set_page_load_timeout(60)
 wait = WebDriverWait(driver, 45)
 
 try:
@@ -117,29 +121,33 @@ try:
 
     # --- XABAR ---
     vaqt = time.strftime('%d.%m.%Y %H:%M')
+    
     xabar = (
-        f"<b>🏦 KUNLIK VALYUTA NARXLARI ($)</b>\n"
+       f"<b>🏦 KUNLIK VALYUTA NARXLARI ($)</b>\n"
         f"— — — — — — — — — — — — — — —\n"
         f"🏛 Bank nomi          |  Xarid  |  Sotuv \n"
         f"— — — — — — — — — — — — — — —\n"
-        f"🏙 Ipak Yo'li        | {iy_x.strip():<5} | {iy_s.strip()}\n"
-        f"🏙 Turon Bank        | {tb_x.strip():<5} | {tb_s.strip()}\n"
-        f"🏙 Hamkor Bank       | {hm_x.strip():<5} | {hm_s.strip()}\n"
-        f"🏙 NBU Bank          | {nb_x.strip():<5} | {nb_s.strip()}\n"
-        f"🏙 Aloqa Bank        | {al_x.strip():<5} | {al_s.strip()}\n"
-        f"🏙 Xalq Bank         | {xq_x.strip():<5} | {xq_s.strip()}\n"
-        f"🏙 Trast Bank        | {tr_x.strip():<5} | {tr_s.strip()}\n"
-        f"🏙 Mikro Bank        | {mb_x.strip():<5} | {mb_s.strip()}\n"
-        f"🏙 Ipoteka Bank      | {ip_x.strip():<5} | {ip_s.strip()}\n"
-        f"🏙 Octo Bank         | {oc_x.strip():<5} | {oc_s.strip()}\n"
+        f"🏙 <a href='https://ipakyulibank.uz/physical'>Ipak Yo'li      </a>       | {iy_x.strip():<5} | {iy_s.strip()}\n"
+        f"🏙 <a href='https://turonbank.uz/uz/'>Turon Bank   </a>     | {tb_x.strip():<5} | {tb_s.strip()}\n"
+        f"🏙 <a href='https://hamkorbank.uz/uz/'>Hamkor Bank   </a> | {hm_x.strip():<5} | {hm_s.strip()}\n"
+        f"🏙 <a href='https://nbu.uz/'>NBU Bank          </a> | {nb_x.strip():<5} | {nb_s.strip()}\n"
+        f"🏙 <a href='https://aloqabank.uz/ru/services/exchange-rates/'>Aloqa Bank        </a> | {al_x.strip():<5} | {al_s.strip()}\n"
+        f"🏙 <a href='https://xb.uz/'>Xalq Bank       </a>     | {xq_x.strip():<5} | {xq_s.strip()}\n"
+        f"🏙 <a href='https://trustbank.uz/uz/'>Trast Bank        </a>   | {tr_x.strip():<5} | {tr_s.strip()}\n"
+        f"🏙 <a href='https://mkbank.uz/uz/'>Mikro Bank      </a>   | {mb_x.strip():<5} | {mb_s.strip()}\n"
+        f"🏙 <a href='https://www.ipotekabank.uz/ru/private/services/currency/'>Ipoteka Bank    </a> | {ip_x.strip():<5} | {ip_s.strip()}\n"
+        f"🏙 <a href='https://octobank.uz/uz'>Octo Bank      </a>     | {oc_x.strip():<5} | {oc_s.strip()}\n"
         f"— — — — — — — — — — — — — — —\n"
-        f"<blockquote>Eng yaxshi narx: | {ey_x} | {ey_s} 📈</blockquote>\n"
-        f"<b>💰 Quyma oltin:</b>\n"
-        f"🟡 5g: {oltin_5} | 10g: {oltin_10}\n"
-        f"🟡 20g: {oltin_20} | 50g: {oltin_50}\n"
-        f"🟡 100g: {oltin_100}\n"
+        f"<blockquote>Eng yaxshi narx: | {eng_y_x} | {eng_y_s} 📈</blockquote>\n"
+        f"<b>💰 Quyma oltin narxlari:</b>\n"
+        f"🟡 5 грамм:  {oltin_5}\n"
+        f"🟡 10 грамм:  {oltin_10}\n"
+        f"🟡 20 грамм:  {oltin_20}\n"
+        f"🟡 50 грамм:  {oltin_50}\n"
+        f"🟡 100 грамм: {oltin_100}\n"
         f"🕒 <b>Yangilandi:</b> {vaqt}\n\n"
-        f"📢 @dollorkurslariUZ"
+        f"Bu ma'lumotlar Bankarning rasmiy saytlaridan olingan !\n"
+        f"📢 @dollorkurslariUZ — tezkor va aniq"
     )
 
     requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", 
