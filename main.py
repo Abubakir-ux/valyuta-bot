@@ -49,7 +49,7 @@ try:
     tb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="js-main-page"]/div[1]/div/div/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[3]/div/span'))).text
 
     driver.get("https://hamkorbank.uz/uz/exchange-rate/")
-    time.sleep(5) 
+    time.sleep(15) 
     hm_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="block_mAWMGK"]/div/div[4]/div[2]/div[2]/div[2]'))).text
     hm_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="block_mAWMGK"]/div/div[4]/div[2]/div[3]/div[2]'))).text
 
@@ -75,8 +75,8 @@ try:
 
     driver.get("https://mkbank.uz/uz/")
     time.sleep(15)
-    mb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="top"]/div[2]/div[1]/header[2]/div/div/noindex[1]/div/div[1]/div[2]/div[1]/div[2]/div[1]'))).text
-    mb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="top"]/div[2]/div[1]/header[2]/div/div/noindex[1]/div/div[1]/div[2]/div[2]/div[2]/div[1]'))).text
+    mb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="js-main-page"]/div[1]/div/div/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[2]/div/span'))).text
+    mb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="js-main-page"]/div[1]/div/div/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[3]/div/span'))).text
 
     driver.get("https://www.ipotekabank.uz/ru/private/services/currency/")
     time.sleep(15)
