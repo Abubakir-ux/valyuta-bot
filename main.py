@@ -104,7 +104,7 @@ try:
 
     ey_x = f"{max(x_filtrlangan):,}".replace(",", " ") if x_filtrlangan else "0"
     ey_s = f"{min(s_filtrlangan):,}".replace(",", " ") if s_filtrlangan else "0"
-
+                    
     vaqt = time.strftime('%d.%m.%Y %H:%M')
     
     xabar = (
@@ -131,7 +131,7 @@ try:
         f"🟡 50 грамм:  {oltin_50}\n"
         f"🟡 100 грамм: {oltin_100}\n"
         f"🕒 <b>Yangilandi:</b> {vaqt}\n\n"
-        f"Bu ma'lumotlar Bankarning rasmiy saytlaridan olingan !\n"
+        f" Bu ma'lumotlar Bankarning rasmiy saytlaridan olingan ! \n"
         f"📢 @dollorkurslariUZ — tezkor va aniq"
     )
 
