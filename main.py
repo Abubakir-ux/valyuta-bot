@@ -9,7 +9,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8592762047:AAGyO5OxRoBi1nZzcN0jXz9IeeVrtgl4Q6c")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8711798125:AAGXq6hFwcWKYjU8ZhMHGySojqyLYR4wWo0")
 CHAT_ID = os.getenv("CHAT_ID", "-1003805780800")
 
 def tozalash(matn):
