@@ -33,7 +33,7 @@ chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=chrome_options)
 driver.set_page_load_timeout(180)
-wait = WebDriverWait(driver, 45)
+wait = WebDriverWait(driver, 60)
 
 try:
     print("Ma'lumotlar yig'ilmoqda...")
