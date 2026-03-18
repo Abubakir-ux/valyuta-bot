@@ -131,8 +131,8 @@ try:
                   data={
                   "chat_id": CHAT_ID, 
                   "text": xabar,
-                  "parse_mode": "HTML"})
-                  "disable_web_page_preview": True
+                  "parse_mode": "HTML",
+                  "disable_web_page_preview": True})
     print("✅ Bajarildi!")
 
 except Exception as e:
