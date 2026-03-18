@@ -89,8 +89,8 @@ try:
     oltin_50 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[6]/td[2]/p'))).text
     oltin_100 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[7]/td[2]/p'))).text
 
-    x_list = [tozalash(iy_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(mb_x), tozalash(ip_x), tozalash(oc_x)]
-    s_list = [tozalash(iy_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(mb_s), tozalash(ip_s), tozalash(oc_s)]
+    x_list = [tozalash(iy_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(ip_x), tozalash(oc_x)]
+    s_list = [tozalash(iy_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(ip_s), tozalash(oc_s)]
 
     x_filtrlangan = [i for i in x_list if i > 10000]
     s_filtrlangan = [i for i in s_list if i > 10000]
@@ -112,7 +112,6 @@ try:
         f"🏙 <a href='https://aloqabank.uz/ru/services/exchange-rates/'>Aloqa Bank        </a> | {al_x.strip():<5} | {al_s.strip()}\n"
         f"🏙 <a href='https://xb.uz/'>Xalq Bank       </a>     | {xq_x.strip():<5} | {xq_s.strip()}\n"
         f"🏙 <a href='https://trustbank.uz/uz/'>Trast Bank        </a>   | {tr_x.strip():<5} | {tr_s.strip()}\n"
-        f"🏙 <a href='https://mkbank.uz/uz/'>Mikro Bank      </a>   | {mb_x.strip():<5} | {mb_s.strip()}\n"
         f"🏙 <a href='https://www.ipotekabank.uz/ru/private/services/currency/'>Ipoteka Bank    </a> | {ip_x.strip():<5} | {ip_s.strip()}\n"
         f"🏙 <a href='https://octobank.uz/uz'>Octo Bank      </a>     | {oc_x.strip():<5} | {oc_s.strip()}\n"
         f"— — — — — — — — — — — — — — —\n"
