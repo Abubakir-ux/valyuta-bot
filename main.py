@@ -71,11 +71,6 @@ try:
     tr_x = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[4]/section[2]/div/div/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody/tr[2]/td[2]/div/span'))).text
     tr_s = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[4]/section[2]/div/div/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody/tr[2]/td[3]/div/span'))).text
 
-    driver.get("https://mkbank.uz/uz/")
-    time.sleep(15)
-    mb_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="top"]/div[2]/div[6]/div/div[3]/div[1]/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[2]'))).text
-    mb_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="top"]/div[2]/div[6]/div/div[3]/div[1]/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[3]'))).text
-
     driver.get("https://www.ipotekabank.uz/ru/private/services/currency/")
     time.sleep(15)
     ip_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="all"]/div/table/tbody/tr[1]/td[2]'))).text
