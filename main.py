@@ -99,8 +99,8 @@ try:
     oltin_50 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[6]/td[2]/p'))).text
     oltin_100 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[7]/td[2]/p'))).text
 
-    x_list = [tozalash(iy_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(ip_x), tozalash(oc_x), tozalash(as_s)]
-    s_list = [tozalash(iy_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(ip_s), tozalash(oc_s), tozalash(as_s)]
+    x_list = [tozalash(iy_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(ip_x), tozalash(oc_x), tozalash(aa_s)]
+    s_list = [tozalash(iy_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(ip_s), tozalash(oc_s), tozalash(aa_s)]
 
     x_filtrlangan = [i for i in x_list if i > 10000]
     s_filtrlangan = [i for i in s_list if i > 10000]
