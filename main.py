@@ -86,7 +86,6 @@ try:
     oc_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="w-node-_23a24b74-a88d-5f36-44f5-45399e0decee-9e0dece1"]/div[2]/div/div[1]/p'))).text
     oc_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="w-node-_23a24b74-a88d-5f36-44f5-45399e0decee-9e0dece1"]/div[2]/div/div[2]/p'))).text
 
-    
     driver.get("https://cbu.uz/oz/banknotes-coins/gold-bars/prices/")
     time.sleep(15)
     oltin_5 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[3]/td[2]/p'))).text
