@@ -86,6 +86,11 @@ try:
     oc_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="w-node-_23a24b74-a88d-5f36-44f5-45399e0decee-9e0dece1"]/div[2]/div/div[1]/p'))).text
     oc_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="w-node-_23a24b74-a88d-5f36-44f5-45399e0decee-9e0dece1"]/div[2]/div/div[2]/p'))).text
 
+    driver.get("https://www.aab.uz/ru/?utm_source=google&utm_medium=cpc&utm_campaign=23449577685&utm_adgroup=195394384270&utm_content=792588736523&utm_term=%D0%BE%D0%BD%D0%BB%D0%B0%D0%B9%D0%BD%20%D0%B1%D0%B0%D0%BD%D0%BA&utm_device=c&utm_network=g&utm_matchtype=b&utm_placement=&gclid=Cj0KCQjwpv7NBhCzARIsADkIfWyST9X4I4Nvp9j_D4DcEOSU9TfX4eJqP53h3Ux6dHwq0n2ISAvFINEaAtV2EALw_wcB&gad_source=1&gad_campaignid=23449577685&gbraid=0AAAABB8DdDv8P8mVBj7TZTqSxwJeWdJNv&gclid=Cj0KCQjwpv7NBhCzARIsADkIfWyST9X4I4Nvp9j_D4DcEOSU9TfX4eJqP53h3Ux6dHwq0n2ISAvFINEaAtV2EALw_wcB")
+    time.sleep(15)
+    aa_x = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[4]/div/div[3]/div[2]/div[1]/div[2]/div/div[2]/table/tbody/tr[2]/td[2]'))).text
+    aa_s = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[4]/div/div[3]/div[2]/div[1]/div[2]/div/div[2]/table/tbody/tr[2]/td[3]'))).text
+    
     driver.get("https://cbu.uz/oz/banknotes-coins/gold-bars/prices/")
     time.sleep(15)
     oltin_5 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[3]/td[2]/p'))).text
