@@ -125,6 +125,7 @@ try:
         f"🏙 <a href='https://trustbank.uz/uz/'>Trast Bank        </a>   | {tr_x.strip():<5} | {tr_s.strip()}\n"
         f"🏙 <a href='https://www.ipotekabank.uz/ru/private/services/currency/'>Ipoteka Bank    </a> | {ip_x.strip():<5} | {ip_s.strip()}\n"
         f"🏙 <a href='https://octobank.uz/uz'>Octo Bank      </a>     | {oc_x.strip():<5} | {oc_s.strip()}\n"
+        f"🏙 <a href='https://www.aab.uz/ru/?utm_source=google&utm_medium=cpc&utm_campaign=23449577685&utm_adgroup=195394384270&utm_content=792588736523&utm_term=%D0%BE%D0%BD%D0%BB%D0%B0%D0%B9%D0%BD%20%D0%B1%D0%B0%D0%BD%D0%BA&utm_device=c&utm_network=g&utm_matchtype=b&utm_placement=&gclid=Cj0KCQjwpv7NBhCzARIsADkIfWyST9X4I4Nvp9j_D4DcEOSU9TfX4eJqP53h3Ux6dHwq0n2ISAvFINEaAtV2EALw_wcB&gad_source=1&gad_campaignid=23449577685&gbraid=0AAAABB8DdDv8P8mVBj7TZTqSxwJeWdJNv&gclid=Cj0KCQjwpv7NBhCzARIsADkIfWyST9X4I4Nvp9j_D4DcEOSU9TfX4eJqP53h3Ux6dHwq0n2ISAvFINEaAtV2EALw_wcB'>Asia Alliance bank      </a>     | {aa_x.strip():<5} | {aa_s.strip()}\n"
         f"— — — — — — — — — — — — — — —\n"
         f"<blockquote>Eng yaxshi narx: | {ey_x} | {ey_s} 📈</blockquote>\n"
         f"<b>💰 Quyma oltin narxlari:</b>\n"
