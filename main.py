@@ -86,10 +86,6 @@ try:
     oc_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="w-node-_23a24b74-a88d-5f36-44f5-45399e0decee-9e0dece1"]/div[2]/div/div[1]/p'))).text
     oc_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="w-node-_23a24b74-a88d-5f36-44f5-45399e0decee-9e0dece1"]/div[2]/div/div[2]/p'))).text
 
-    driver.get("https://www.aab.uz/ru/?utm_source=google&utm_medium=cpc&utm_campaign=23449577685&utm_adgroup=195394384270&utm_content=792588736523&utm_term=%D0%BE%D0%BD%D0%BB%D0%B0%D0%B9%D0%BD%20%D0%B1%D0%B0%D0%BD%D0%BA&utm_device=c&utm_network=g&utm_matchtype=b&utm_placement=&gclid=Cj0KCQjwpv7NBhCzARIsADkIfWyST9X4I4Nvp9j_D4DcEOSU9TfX4eJqP53h3Ux6dHwq0n2ISAvFINEaAtV2EALw_wcB&gad_source=1&gad_campaignid=23449577685&gbraid=0AAAABB8DdDv8P8mVBj7TZTqSxwJeWdJNv&gclid=Cj0KCQjwpv7NBhCzARIsADkIfWyST9X4I4Nvp9j_D4DcEOSU9TfX4eJqP53h3Ux6dHwq0n2ISAvFINEaAtV2EALw_wcB")
-    time.sleep(15)
-    aa_x = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[4]/div/div[3]/div[2]/div[1]/div[2]/div/div[2]/table/tbody/tr[2]/td[2]'))).text
-    aa_s = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/div[4]/div/div[3]/div[2]/div[1]/div[2]/div/div[2]/table/tbody/tr[2]/td[3]'))).text
     
     driver.get("https://cbu.uz/oz/banknotes-coins/gold-bars/prices/")
     time.sleep(15)
@@ -99,9 +95,8 @@ try:
     oltin_50 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[6]/td[2]/p'))).text
     oltin_100 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[7]/td[2]/p'))).text
 
-    x_list = [tozalash(iy_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(ip_x), tozalash(oc_x), tozalash(aa_s)]
-    s_list = [tozalash(iy_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(ip_s), tozalash(oc_s), tozalash(aa_s)]
-
+    x_list = [tozalash(iy_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(ip_x), tozalash(oc_x)]
+    s_list = [tozalash(iy_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(ip_s), tozalash(oc_s)]
     x_filtrlangan = [i for i in x_list if i > 10000]
     s_filtrlangan = [i for i in s_list if i > 10000]
 
@@ -125,7 +120,6 @@ try:
         f"🏙 <a href='https://trustbank.uz/uz/'>Trast Bank        </a>   | {tr_x.strip():<5} | {tr_s.strip()}\n"
         f"🏙 <a href='https://www.ipotekabank.uz/ru/private/services/currency/'>Ipoteka Bank    </a> | {ip_x.strip():<5} | {ip_s.strip()}\n"
         f"🏙 <a href='https://octobank.uz/uz'>Octo Bank      </a>     | {oc_x.strip():<5} | {oc_s.strip()}\n"
-        f"🏙 <a href='https://www.aab.uz/ru/?utm_source=google&utm_medium=cpc&utm_campaign=23449577685&utm_adgroup=195394384270&utm_content=792588736523&utm_term=%D0%BE%D0%BD%D0%BB%D0%B0%D0%B9%D0%BD%20%D0%B1%D0%B0%D0%BD%D0%BA&utm_device=c&utm_network=g&utm_matchtype=b&utm_placement=&gclid=Cj0KCQjwpv7NBhCzARIsADkIfWyST9X4I4Nvp9j_D4DcEOSU9TfX4eJqP53h3Ux6dHwq0n2ISAvFINEaAtV2EALw_wcB&gad_source=1&gad_campaignid=23449577685&gbraid=0AAAABB8DdDv8P8mVBj7TZTqSxwJeWdJNv&gclid=Cj0KCQjwpv7NBhCzARIsADkIfWyST9X4I4Nvp9j_D4DcEOSU9TfX4eJqP53h3Ux6dHwq0n2ISAvFINEaAtV2EALw_wcB'>Asia Alliance bank      </a>     | {aa_x.strip():<5} | {aa_s.strip()}\n"
         f"— — — — — — — — — — — — — — —\n"
         f"<blockquote>Eng yaxshi narx: | {ey_x} | {ey_s} 📈</blockquote>\n"
         f"<b>💰 Quyma oltin narxlari:</b>\n"
