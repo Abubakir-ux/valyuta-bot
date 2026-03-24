@@ -2,9 +2,9 @@ name: Bank Kurslari Bot
 
 on:
   schedule:
-    # Har kuni Toshkent vaqti bilan 09:00 va 18:00 da ishga tushadi (UTC 04:00 va 13:00)
+
     - cron: '0 4,13 * * *'
-  workflow_dispatch: # Qo'lda ishga tushirish imkoniyati
+  workflow_dispatch:
 
 jobs:
   build:
