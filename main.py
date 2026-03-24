@@ -110,7 +110,7 @@ try:
         f"🏛 Bank nomi          |  Xarid  |  Sotuv \n"
         f"— — — — — — — — — — — — — — —\n"
         f"🏙 <a href='https://ipakyulibank.uz/physical'>Ipak Yo'li      </a>       | {iy_x.strip():<5} | {iy_s.strip()}\n"
-        f"🏙 <a href='https://ziraatbank.uz/uz'>Ziraat bank</a>    | {zr_x.strip():<5} | {zr_s.strip()}\n"
+        f"🏙 <a href='https://ziraatbank.uz/uz'>Ziraat bank    </a>    | {zr_x.strip():<5} | {zr_s.strip()}\n"
         f"🏙 <a href='https://turonbank.uz/uz/'>Turon Bank   </a>     | {tb_x.strip():<5} | {tb_s.strip()}\n"
         f"🏙 <a href='https://hamkorbank.uz/uz/'>Hamkor Bank   </a> | {hm_x.strip():<5} | {hm_s.strip()}\n"
         f"🏙 <a href='https://nbu.uz/'>NBU Bank          </a> | {nb_x.strip():<5} | {nb_s.strip()}\n"
