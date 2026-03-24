@@ -43,8 +43,8 @@ try:
 
     driver.get("https://ziraatbank.uz/uz")
     time.sleep(15)
-    as_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="currency-list"]/ul/li[1]/div/div[1]/span'))).text
-    as_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="currency-list"]/ul/li[1]/div/div[2]/span'))).text
+    zr_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="currency-list"]/ul/li[1]/div/div[1]/span'))).text
+    zr_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="currency-list"]/ul/li[1]/div/div[2]/span'))).text
 
     driver.get("https://turonbank.uz/uz/")
     time.sleep(15)
