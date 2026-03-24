@@ -44,7 +44,7 @@ try:
     driver.get("https://www.asakabank.uz/uz/physical-persons/home")
     time.sleep(15)
     as_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="headlessui-tabs-panel-v-0-55"]/div/div[1]/div[1]/div[2]/div[3]/div/p'))).text
-    as_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="headlessui-tabs-panel-v-0-125"]/div/div[1]/div[1]/div[2]/div[4]/div/p'))).text
+    as_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="headlessui-tabs-panel-v-0-65"]/div/div[1]/div[1]/div[2]/div[4]/div/p'))).text
 
     driver.get("https://turonbank.uz/uz/")
     time.sleep(15)
