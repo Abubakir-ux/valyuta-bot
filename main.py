@@ -141,6 +141,9 @@ try:
     print("✅ Bajarildi!")
 
 except Exception as e:
-    print(f"❌ Xato: {e}")
+    import traceback
+    print(f"❌ Xatolik yuz berdi: {e}")
+    print("--- To'liq xatolik izi (Stacktrace) ---")
+    traceback.print_exc()
 finally:
     driver.quit()
