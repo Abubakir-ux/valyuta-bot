@@ -41,10 +41,10 @@ try:
     iy_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="124"]/div[2]/div/div[2]/table/tbody/tr[1]/td[2]'))).text
     iy_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="124"]/div[2]/div/div[2]/table/tbody/tr[1]/td[3]'))).text
 
-    driver.get("https://www.asakabank.uz/uz/physical-persons/home")
+    driver.get("https://ziraatbank.uz/uz")
     time.sleep(15)
-    as_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="headlessui-tabs-panel-v-0-55"]/div/div[1]/div[1]/div[2]/div[3]/div/p'))).text
-    as_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="headlessui-tabs-panel-v-0-65"]/div/div[1]/div[1]/div[2]/div[4]/div/p'))).text
+    as_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="currency-list"]/ul/li[1]/div/div[1]/span'))).text
+    as_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="currency-list"]/ul/li[1]/div/div[2]/span'))).text
 
     driver.get("https://turonbank.uz/uz/")
     time.sleep(15)
@@ -94,8 +94,8 @@ try:
     oltin_50 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[6]/td[2]/p'))).text
     oltin_100 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[7]/td[2]/p'))).text
 
-    x_list = [tozalash(iy_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(ip_x), tozalash(oc_x)]
-    s_list = [tozalash(iy_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(ip_s), tozalash(oc_s)]
+    x_list = [tozalash(iy_x), tozalash(zr_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(ip_x), tozalash(oc_x)]
+    s_list = [tozalash(iy_s), tozalash(zr_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(ip_s), tozalash(oc_s)]
     x_filtrlangan = [i for i in x_list if i > 10000]
     s_filtrlangan = [i for i in s_list if i > 10000]
 
@@ -110,7 +110,7 @@ try:
         f"🏛 Bank nomi          |  Xarid  |  Sotuv \n"
         f"— — — — — — — — — — — — — — —\n"
         f"🏙 <a href='https://ipakyulibank.uz/physical'>Ipak Yo'li      </a>       | {iy_x.strip():<5} | {iy_s.strip()}\n"
-        f"🏙 <a href='https://www.asakabank.uz/uz/physical-persons/home'>Asaka bank</a>    | {as_x.strip():<5} | {as_s.strip()}\n"
+        f"🏙 <a href='https://ziraatbank.uz/uz'>Ziraat bank</a>    | {zr_x.strip():<5} | {zr_s.strip()}\n"
         f"🏙 <a href='https://turonbank.uz/uz/'>Turon Bank   </a>     | {tb_x.strip():<5} | {tb_s.strip()}\n"
         f"🏙 <a href='https://hamkorbank.uz/uz/'>Hamkor Bank   </a> | {hm_x.strip():<5} | {hm_s.strip()}\n"
         f"🏙 <a href='https://nbu.uz/'>NBU Bank          </a> | {nb_x.strip():<5} | {nb_s.strip()}\n"
