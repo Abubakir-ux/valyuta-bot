@@ -53,10 +53,10 @@ try:
     of_x = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/main/section[2]/div/div[2]/div[1]/div[2]/div/table/tbody/tr[1]/td[2]/div/p'))).text
     of_s = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/main/section[2]/div/div[2]/div[1]/div[2]/div/table/tbody/tr[1]/td[3]/div/p'))).text
 
-    driver.get("https://brb.uz/")
+    driver.get("https://www.goldenpages.uz/uz/kurs-obmena-dollara-v-uzbekistane/")
     time.sleep(15)
-    br_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="currency-table-body"]/tr[1]/td[2]'))).text
-    br_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="currency-table-body"]/tr[1]/td[3]'))).text
+    an_x = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="lucwiye_kursi_table"]/tbody/tr[28]/td[2]/div[1]/div/b/div/text()'))).text
+    an_s = wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="lucwiye_kursi_table"]/tbody/tr[28]/td[2]/div[2]/div/b/div/text()'))).text
 
     driver.get("https://turonbank.uz/uz/")
     time.sleep(15)
@@ -106,8 +106,8 @@ try:
     oltin_50 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[6]/td[2]/p'))).text
     oltin_100 = wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[7]/td[2]/p'))).text
 
-    x_list = [tozalash(iy_x), tozalash(zr_x), tozalash(of_x), tozalash(br_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(ip_x), tozalash(oc_x)]
-    s_list = [tozalash(iy_s), tozalash(zr_s), tozalash(of_s), tozalash(br_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(ip_s), tozalash(oc_s)]
+    x_list = [tozalash(iy_x), tozalash(zr_x), tozalash(of_x), tozalash(an_x), tozalash(tb_x), tozalash(hm_x), tozalash(nb_x), tozalash(al_x), tozalash(xq_x), tozalash(tr_x), tozalash(ip_x), tozalash(oc_x)]
+    s_list = [tozalash(iy_s), tozalash(zr_s), tozalash(of_s), tozalash(an_s), tozalash(tb_s), tozalash(hm_s), tozalash(nb_s), tozalash(al_s), tozalash(xq_s), tozalash(tr_s), tozalash(ip_s), tozalash(oc_s)]
     x_filtrlangan = [i for i in x_list if i > 10000]
     s_filtrlangan = [i for i in s_list if i > 10000]
 
@@ -132,7 +132,7 @@ try:
         f"🔹 <a href='https://trustbank.uz/uz/'>Trast Bank        </a>   | {tr_x.strip():<5} | {tr_s.strip()}\n"
         f"🔹 <a href='https://www.ipotekabank.uz/ru/private/services/currency/'>Ipoteka Bank    </a> | {ip_x.strip():<5} | {ip_s.strip()}\n"
         f"🔹 <a href='https://octobank.uz/uz'>Octo Bank      </a>     | {oc_x.strip():<5} | {oc_s.strip()}\n"
-        f"🔹 <a href='https://brb.uz/'>BRB Bank      </a>     | {br_x.strip():<5} | {br_s.strip()}\n"
+        f"🔹 <a href='https://anorbank.uz/about/poryadok-priema-grazhdan/'>Anor Bank      </a>     | {an_x.strip():<5} | {an_s.strip()}\n"
         f"— — — — — — — — — — — — — — —\n"
         f"<blockquote>Eng yaxshi narx: | {ey_x} | {ey_s} 📈</blockquote>\n"
         f"<b>💰 Quyma oltin narxlari:</b>\n"
