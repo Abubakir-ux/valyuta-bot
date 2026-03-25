@@ -134,8 +134,8 @@ try:
         f"🟡 50 грамм:  {oltin_50}\n"
         f"🟡 100 грамм: {oltin_100}\n"
         f"🕒 <b>Yangilandi:</b> {vaqt}\n\n"
-        f"📢 Ma’lumotlar banklarning rasmiy saytlaridan olindi.\n"
-        f" @dollorkurslariUZ — tezkor va aniq"
+        f"❗️ Ma’lumotlar banklarning rasmiy saytlaridan olindi.\n"
+        f"📢@dollorkurslariUZ — tezkor va aniq"
     )
 
     requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", 
