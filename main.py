@@ -116,7 +116,7 @@ try:
         f"— — — — — — — — — — — — — — —\n"
         f"🏙 <a href='https://ipakyulibank.uz/physical'>Ipak Yo'li      </a>       | {iy_x.strip():<5} | {iy_s.strip()}\n"
         f"🏙 <a href='https://ziraatbank.uz/uz'>Ziraat bank    </a>    | {zr_x.strip():<5} | {zr_s.strip()}\n"
-        f"🏙 <a href='https://ofb.uz/'>Orient Finans bank    </a>    | {zr_x.strip():<5} | {zr_s.strip()}\n"
+        f"🏙 <a href='https://ofb.uz/'>OFB bank    </a>    | {zr_x.strip():<5} | {zr_s.strip()}\n"
         f"🏙 <a href='https://turonbank.uz/uz/'>Turon Bank   </a>     | {tb_x.strip():<5} | {tb_s.strip()}\n"
         f"🏙 <a href='https://hamkorbank.uz/uz/'>Hamkor Bank   </a> | {hm_x.strip():<5} | {hm_s.strip()}\n"
         f"🏙 <a href='https://nbu.uz/'>NBU Bank          </a> | {nb_x.strip():<5} | {nb_s.strip()}\n"
@@ -134,8 +134,8 @@ try:
         f"🟡 50 грамм:  {oltin_50}\n"
         f"🟡 100 грамм: {oltin_100}\n"
         f"🕒 <b>Yangilandi:</b> {vaqt}\n\n"
-        f" Bu ma'lumotlar Bankarning rasmiy saytlaridan olingan ! \n"
-        f"📢 @dollorkurslariUZ — tezkor va aniq"
+        f"📢 Ma’lumotlar banklarning rasmiy saytlaridan olindi.\n"
+        f" @dollorkurslariUZ — tezkor va aniq"
     )
 
     requests.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", 
