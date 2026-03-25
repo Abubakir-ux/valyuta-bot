@@ -113,7 +113,7 @@ try:
     ey_s = f"{min(s_filtrlangan):,}".replace(",", " ") if s_filtrlangan else "0"
 
     os.environ['TZ'] = 'Asia/Tashkent'
-    if hasattr(time, 'tzset'):
+    if hasattr(time, 'TZset'):
     time.tzset()
     
     vaqt = time.strftime('%d.%m.%Y %H:%M')
