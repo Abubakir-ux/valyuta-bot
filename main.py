@@ -109,7 +109,7 @@ def run_bot():
 
     xabar += f"\n🕒 <b>Yangilandi:</b> {vaqt}\n📢 @dollorkurslariUZ — Tezkor va aniq"
 
-    esponse = requests.post(
+    response = requests.post(
         f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", 
         data={"chat_id": CHAT_ID, "text": xabar, "parse_mode": "HTML", "disable_web_page_preview": True}
     )
