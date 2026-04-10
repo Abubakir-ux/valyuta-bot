@@ -15,7 +15,12 @@ os.environ['TZ'] = 'Asia/Tashkent'
 if hasattr(time, 'tzset'):
     time.tzset()
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8711798125:AAGXq6hFwcWKYjU8ZhMHGySojqyLYR4wWo0")
+# Tokenni tozalab olish (404 xatosini oldini olish uchun)
+RAW_TOKEN = os.getenv("BOT_TOKEN", "8711798125:AAGXq6hFwcWKYjU8ZhMHGySojqyLYR4wWo0")
+BOT_TOKEN = str(RAW_TOKEN).strip()
+if BOT_TOKEN.startswith('bot'):
+    BOT_TOKEN = BOT_TOKEN[3:]
+
 CHAT_ID = os.getenv("CHAT_ID", "-1003805780800")
 
 def tozalash(matn):
@@ -54,7 +59,6 @@ def get_data(info, driver_path):
     finally:
         driver.quit()
 
-# Barcha banklar va XPathlar
 tasks = [
     ("Ipak Yo'li", "https://ipakyulibank.uz/physical", ['//*[@id="124"]//tr[1]/td[2]', '//*[@id="124"]//tr[1]/td[3]']),
     ("Davr Bank", "https://davrbank.uz/ru", ['//*[@id="individual-services"]//tr[1]/td[4]', '//*[@id="individual-services"]//tr[1]/td[3]']),
@@ -86,7 +90,9 @@ def run_bot():
     banks = [r for r in all_results if r['name'] != "Oltin"]
     gold = next((r for r in all_results if r['name'] == "Oltin"), None)
 
-    if not banks: return
+    if not banks: 
+        print("❌ Ma'lumot yig'ilmadi.")
+        return
 
     x_val = [tozalash(r['buy']) for r in banks if tozalash(r['buy']) > 10000]
     s_val = [tozalash(r['sell']) for r in banks if tozalash(r['sell']) > 10000]
@@ -107,16 +113,18 @@ def run_bot():
         g = gold['values']
         xabar += f"<b>💰 Quyma oltin narxlari:</b>\n🟡 5 gr: {g[0]} | 10 gr: {g[1]}\n🟡 20 gr: {g[2]} | 50 gr: {g[3]}\n🟡 100 gr: {g[4]}\n"
 
-    xabar += f"\n🕒 <b>Yangilandi:</b> {vaqt}\n📢 @dollorkurslariUZ — Tezkor va aniq"
+    xabar += f"\n🕒 <b>Yangilandi:</b> {vaqt}\n📢 @dollorkurslariUZ"
 
+    print("📤 Telegramga yuborilmoqda...")
     response = requests.post(
         f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", 
         data={"chat_id": CHAT_ID, "text": xabar, "parse_mode": "HTML", "disable_web_page_preview": True}
     )
+    
     if response.status_code != 200:
-        print(f"❌ Telegram xatosi: {response.text}")
+        print(f"❌ Telegram xatosi: {response.status_code} - {response.text}")
     else:
-        print("✅ Telegram'ga muvaffaqiyatli yuborildi!")
+        print("✅ Bajarildi!")
 
 if __name__ == "__main__":
     run_bot()
