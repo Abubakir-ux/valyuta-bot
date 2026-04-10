@@ -1,22 +1,13 @@
-name: Bank Kurslari Bot
+name: Valyuta Bot
 
 on:
   schedule:
-    # O'zbekiston vaqti bilan 09:00, 13:00, 18:00
-    - cron: '0 4,8,13 * * *'
-  # Qo'lda yurgizish imkoniyati
+    - cron: '0 4,9,13 * * *' # O'zbekiston vaqti bilan 09:00, 14:00, 18:00
   workflow_dispatch:
-  # Kodga o'zgarish kiritib push qilganingda ham yurgizadi (tekshirish uchun qulay)
-  push:
-    branches:
-      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    # Agar bot juda uzoq qolib ketsa (masalan 10 minut), o'zi to'xtaydi
-    timeout-minutes: 15 
-
     steps:
       - name: Kodni yuklab olish
         uses: actions/checkout@v3
@@ -26,20 +17,14 @@ jobs:
         with:
           python-version: '3.9'
 
-      # Chrome brauzerini majburiy o'rnatish (bu barqarorlikni oshiradi)
-      - name: Install Chrome
+      - name: Chrome o'rnatish
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
       - name: Kutubxonalarni o'rnatish
         run: |
-          python -m pip install --upgrade pip
           pip install selenium webdriver-manager requests
 
       - name: Botni ishga tushirish
-        env:
-          # Secretlarni to'g'ri ulanganini tekshir
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.CHAT_ID }}
         run: python main.py
