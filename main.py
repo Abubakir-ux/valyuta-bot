@@ -23,21 +23,20 @@ def tozalash(matn):
     toza_son = "".join(filter(str.isdigit, matn))
     return int(toza_son) if toza_son else 0
 
-def get_bank_data(bank_info):
+def get_bank_data(bank_info, driver_path):
     name, url, x_path, s_path = bank_info
     options = Options()
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1920,1080")
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    driver.set_page_load_timeout(60)
+    driver = webdriver.Chrome(service=Service(driver_path), options=options)
+    driver.set_page_load_timeout(80)
     
     try:
         driver.get(url)
-        wait = WebDriverWait(driver, 30)
+        wait = WebDriverWait(driver, 45)
         buy = wait.until(EC.presence_of_element_located((By.XPATH, x_path))).text
         sell = wait.until(EC.presence_of_element_located((By.XPATH, s_path))).text
         return {"name": name, "buy": buy.strip(), "sell": sell.strip(), "url": url}
@@ -63,9 +62,16 @@ banks_config = [
 ]
 
 def run_bot():
+    print("🚀 Drayver tayyorlanmoqda...")
+    path = ChromeDriverManage().install()
     print("Ma'lumotlar bir vaqtda yig'ilmoqda...")
     with ThreadPoolExecutor(max_workers=4) as executor:
-        results = list(filter(None, executor.map(get_bank_data, banks_config)))
+        futures = [executor.submit(get_bank_data, cfg, path) for cfg in tasks]
+        all_results = []
+            for f in futures:
+                res = f.result()
+                if res is not None:
+                    all_results.append(res)
 
     # Oltin narxlari uchun alohida (CBU)
     oltin = get_bank_data(("Oltin", "https://cbu.uz/oz/banknotes-coins/gold-bars/prices/", "//table//tr[td[contains(.,'5')]]/td[2]/p", "//table//tr[td[contains(.,'100')]]/td[2]/p"))
