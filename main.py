@@ -10,18 +10,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 
-# 1. Vaqtni O'zbekistonga moslash
+# Vaqtni O'zbekistonga moslash
 os.environ['TZ'] = 'Asia/Tashkent'
 if hasattr(time, 'tzset'):
     time.tzset()
 
-# Tokenni tozalab olish (404 xatosini oldini olish uchun)
-RAW_TOKEN = os.getenv("BOT_TOKEN", "8711798125:AAGXq6hFwcWKYjU8ZhMHGySojqyLYR4wWo0")
-BOT_TOKEN = str(RAW_TOKEN).strip()
-if BOT_TOKEN.startswith('bot'):
-    BOT_TOKEN = BOT_TOKEN[3:]
-
-CHAT_ID = os.getenv("CHAT_ID", "-1003805780800")
+# Token va Chat ID (To'g'ridan-to'g'ri yozildi)
+BOT_TOKEN = "8711798125:AAGXq6hFwcWKYjU8ZhMHGySojqyLYR4wWo0"
+CHAT_ID = "-1003805780800"
 
 def tozalash(matn):
     if not matn or matn.strip() == "": return 0
@@ -80,17 +76,17 @@ tasks = [
 
 def run_bot():
     print("🚀 Drayver tayyorlanmoqda...")
-    driver_path = ChromeDriverManager().install()
+    path = ChromeDriverManager().install()
     
     print("🚀 Banklar tekshirilmoqda...")
     with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = [executor.submit(get_data, cfg, driver_path) for cfg in tasks]
+        futures = [executor.submit(get_data, cfg, path) for cfg in tasks]
         all_results = [f.result() for f in futures if f.result() is not None]
 
     banks = [r for r in all_results if r['name'] != "Oltin"]
     gold = next((r for r in all_results if r['name'] == "Oltin"), None)
 
-    if not banks: 
+    if not banks:
         print("❌ Ma'lumot yig'ilmadi.")
         return
 
@@ -116,15 +112,15 @@ def run_bot():
     xabar += f"\n🕒 <b>Yangilandi:</b> {vaqt}\n📢 @dollorkurslariUZ"
 
     print("📤 Telegramga yuborilmoqda...")
-    response = requests.post(
+    resp = requests.post(
         f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", 
         data={"chat_id": CHAT_ID, "text": xabar, "parse_mode": "HTML", "disable_web_page_preview": True}
     )
     
-    if response.status_code != 200:
-        print(f"❌ Telegram xatosi: {response.status_code} - {response.text}")
+    if resp.status_code != 200:
+        print(f"❌ Telegram xatosi: {resp.text}")
     else:
-        print("✅ Bajarildi!")
+        print("✅ Telegram'ga muvaffaqiyatli yuborildi!")
 
 if __name__ == "__main__":
     run_bot()
