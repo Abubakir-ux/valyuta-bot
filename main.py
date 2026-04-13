@@ -15,13 +15,14 @@ os.environ['TZ'] = 'Asia/Tashkent'
 if hasattr(time, 'tzset'):
     time.tzset()
 
-# Token va Chat ID (To'g'ridan-to'g'ri yozildi)
+# Token va Chat ID
 BOT_TOKEN = "8711798125:AAGXq6hFwcWKYjU8ZhMHGySojqyLYR4wWo0"
 CHAT_ID = "-1003805780800"
 
 def tozalash(matn):
-    if not matn or matn.strip() == "": return 0
-    toza_son = "".join(filter(str.isdigit, matn))
+    if not matn: return 0
+    # Faqat raqamlarni ajratib olish
+    toza_son = "".join(filter(str.isdigit, str(matn)))
     return int(toza_son) if toza_son else 0
 
 def get_data(info, driver_path):
@@ -44,17 +45,31 @@ def get_data(info, driver_path):
             results = []
             for xp in x_paths:
                 val = wait.until(EC.presence_of_element_located((By.XPATH, xp))).text
-                results.append(val.strip())
-            return {"name": "Oltin", "values": results}
+                if val.strip():
+                    results.append(val.strip())
+            return {"name": "Oltin", "values": results} if len(results) > 0 else None
         
-        buy = wait.until(EC.presence_of_element_located((By.XPATH, x_paths[0]))).text
-        sell = wait.until(EC.presence_of_element_located((By.XPATH, x_paths[1]))).text
-        return {"name": name, "buy": buy.strip(), "sell": sell.strip(), "url": url}
+        buy_raw = wait.until(EC.presence_of_element_located((By.XPATH, x_paths[0]))).text
+        sell_raw = wait.until(EC.presence_of_element_located((By.XPATH, x_paths[1]))).text
+        
+        # Agar narxlar bo'sh bo'lsa, bu bankni qaytarmaymiz
+        if not buy_raw.strip() or not sell_raw.strip():
+            return None
+            
+        return {
+            "name": name, 
+            "buy": buy_raw.strip(), 
+            "sell": sell_raw.strip(), 
+            "url": url,
+            "buy_num": tozalash(buy_raw),
+            "sell_num": tozalash(sell_raw)
+        }
     except:
         return None
     finally:
         driver.quit()
 
+# XPathlaring o'zgarishsiz qoldi
 tasks = [
     ("Ipak Yo'li", "https://ipakyulibank.uz/physical", ['//*[@id="124"]/div[2]/div/div[2]/table/tbody/tr[1]/td[2]', '//*[@id="124"]/div[2]/div/div[2]/table/tbody/tr[1]/td[3]']),
     ("Davr Bank", "https://davrbank.uz/ru", ['//*[@id="individual-services"]/div/div[1]/div[2]/table/tbody/tr[1]/td[4]', '//*[@id="individual-services"]/div/div[1]/div[2]/table/tbody/tr[1]/td[3]']),
@@ -85,17 +100,20 @@ def run_bot():
         futures = [executor.submit(get_data, cfg, path) for cfg in tasks]
         all_results = [f.result() for f in futures if f.result() is not None]
 
-    banks = [r for r in all_results if r['name'] != "Oltin"]
+    # Faqat narxi nolga teng bo'lmagan banklarni qoldiramiz
+    banks = [r for r in all_results if r['name'] != "Oltin" and r.get('buy_num', 0) > 0]
     gold = next((r for r in all_results if r['name'] == "Oltin"), None)
 
     if not banks:
-        print("❌ Ma'lumot yig'ilmadi.")
+        print("❌ Hech qanday bankdan to'g'ri ma'lumot kelmadi.")
         return
 
-    x_val = [tozalash(r['buy']) for r in banks if tozalash(r['buy']) > 10000]
-    s_val = [tozalash(r['sell']) for r in banks if tozalash(r['sell']) > 10000]
-    ey_x = f"{max(x_val):,}".replace(",", " ") if x_val else "0"
-    ey_s = f"{min(s_val):,}".replace(",", " ") if s_val else "0"
+    # Eng yaxshi narxlar
+    ey_x_val = max([r['buy_num'] for r in banks])
+    ey_s_val = min([r['sell_num'] for r in banks])
+    
+    ey_x = f"{ey_x_val:,}".replace(",", " ")
+    ey_s = f"{ey_s_val:,}".replace(",", " ")
 
     vaqt = time.strftime('%d.%m.%Y %H:%M')
     xabar = f"<b>🏦 KUNLIK VALYUTA NARXLARI ($)</b>\n— — — — — — — — — — — — — — —\n"
@@ -107,7 +125,7 @@ def run_bot():
     xabar += f"— — — — — — — — — — — — — — —\n"
     xabar += f"<blockquote>Eng yaxshi narx: | {ey_x} | {ey_s} 📈</blockquote>\n"
 
-    if gold:
+    if gold and len(gold.get('values', [])) >= 5:
         g = gold['values']
         xabar += f"<b>💰 Quyma oltin narxlari:</b>\n🟡 5 gr: {g[0]} | 10 gr: {g[1]}\n🟡 20 gr: {g[2]} | 50 gr: {g[3]}\n🟡 100 gr: {g[4]}\n"
 
