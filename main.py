@@ -127,12 +127,7 @@ def run_bot():
 
     if gold and len(gold.get('values', [])) >= 5:
         g = gold['values']
-        xabar += f"<b>💰 Quyma oltin narxlari:</b>\n
-        🟡 5 грам: {g[0]}\n 
-        🟡 10 грам: {g[1]}\n
-        🟡 20 грам: {g[2]}\n 
-        🟡 50 грам: {g[3]}\n
-        🟡 100 грам: {g[4]}
+        xabar += f"<b>💰 Quyma oltin narxlari:</b>\n🟡 5 грамм: {g[0]} | 10 грамм: {g[1]}\n🟡 20 грамм: {g[2]} | 50 грамм: {g[3]}\n🟡 100 грамм: {g[4]}\n"
 
     xabar += f"\n🕒 <b>Yangilandi:</b> {vaqt}\n📢 @dollorkurslariUZ"
 
