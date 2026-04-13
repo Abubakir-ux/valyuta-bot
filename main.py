@@ -56,21 +56,23 @@ def get_data(info, driver_path):
         driver.quit()
 
 tasks = [
-    ("Ipak Yo'li", "https://ipakyulibank.uz/physical", ['//*[@id="124"]//tr[1]/td[2]', '//*[@id="124"]//tr[1]/td[3]']),
-    ("Davr Bank", "https://davrbank.uz/ru", ['//*[@id="individual-services"]//tr[1]/td[4]', '//*[@id="individual-services"]//tr[1]/td[3]']),
-    ("Ziraat Bank", "https://ziraatbank.uz/uz", ['//*[@id="currency-list"]//li[1]//div[1]/span', '//*[@id="currency-list"]//li[1]//div[2]/span']),
-    ("OFB Bank", "https://ofb.uz/", ['/html/body/main/section[2]//table/tbody/tr[1]/td[2]//p', '/html/body/main/section[2]//table/tbody/tr[1]/td[3]//p']),
-    ("Turon Bank", "https://turonbank.uz/uz/", ['//*[@id="js-main-page"]//tr[2]/td[2]//span', '//*[@id="js-main-page"]//tr[2]/td[3]//span']),
-    ("Hamkor Bank", "https://hamkorbank.uz/uz/exchange-rate/", ['//div[contains(@class,"buy")]/div[2]', '//div[contains(@class,"sell")]/div[2]']),
-    ("NBU Bank", "https://nbu.uz/jismoniy-shaxslar-valyutalar-kursi", ['//*[@id="02"]//div[2]/div[1]/div[2]/div', '//*[@id="02"]//div[2]/div[1]/div[3]/div']),
-    ("Aloqa Bank", "https://aloqabank.uz/ru/services/exchange-rates/", ['//table//tr[2]/td[2]//span', '//table//tr[2]/td[3]//span']),
-    ("Xalq Bank", "https://xb.uz/page/valyuta-ayirboshlash", ['//div[contains(@class,"exchange-item")]//div[3]//p', '//div[contains(@class,"exchange-item")]//div[2]//p']),
-    ("Trast Bank", "https://trustbank.uz/uz/", ['//table//tr[2]/td[2]//span', '//table//tr[2]/td[3]//span']),
-    ("Ipoteka Bank", "https://www.ipotekabank.uz/ru/private/services/currency/", ['//*[@id="all"]//tr[1]/td[2]', '//*[@id="all"]//tr[1]/td[3]']),
-    ("Octo Bank", "https://octobank.uz/uz", ['//div[contains(@class,"exchange-row")]/div[2]//p', '//div[contains(@class,"exchange-row")]/div[3]//p']),
+    ("Ipak Yo'li", "https://ipakyulibank.uz/physical", ['//*[@id="124"]/div[2]/div/div[2]/table/tbody/tr[1]/td[2]', '//*[@id="124"]/div[2]/div/div[2]/table/tbody/tr[1]/td[3]']),
+    ("Davr Bank", "https://davrbank.uz/ru", ['//*[@id="individual-services"]/div/div[1]/div[2]/table/tbody/tr[1]/td[4]', '//*[@id="individual-services"]/div/div[1]/div[2]/table/tbody/tr[1]/td[3]']),
+    ("OFB Bank", "https://ofb.uz/", ['/html/body/main/section[2]/div/div[2]/div[1]/div[2]/div/table/tbody/tr[1]/td[2]/div/p', '/html/body/main/section[2]/div/div[2]/div[1]/div[2]/div/table/tbody/tr[1]/td[3]/div/p']),
+    ("Turon Bank", "https://turonbank.uz/uz/", ['//*[@id="js-main-page"]/div[1]/div/div/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[2]/div/span', '//*[@id="js-main-page"]/div[1]/div/div/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[3]/div/span']),
+    ("Hamkor Bank", "https://hamkorbank.uz/uz/exchange-rate/", ['//*[@id="block_mAWMGK"]/div/div[4]/div[2]/div[2]/div[2]', '//*[@id="block_mAWMGK"]/div/div[4]/div[2]/div[3]/div[2]']),
+    ("NBU Bank", "https://nbu.uz/jismoniy-shaxslar-valyutalar-kursi", ['//*[@id="02"]/div/div/div/div[1]/div[2]/div[1]/div[2]/div', '//*[@id="02"]/div/div/div/div[1]/div[2]/div[1]/div[3]/div']),
+    ("Aloqa Bank", "https://aloqabank.uz/ru/services/exchange-rates/", ['/html/body/div[2]/div[5]/div/div[2]/div[1]/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[2]/div/span', '/html/body/div[2]/div[5]/div/div[2]/div[1]/div[1]/div[2]/div[1]/table/tbody/tr[2]/td[3]/div/span']),
+    ("Xalq Bank", "https://xb.uz/page/valyuta-ayirboshlash", ['//*[@id="__next"]/div[2]/main/div/div/div[3]/div[2]/div[2]/div/div[2]/div[1]/div/div[3]/div/div/p', '//*[@id="__next"]/div[2]/main/div/div/div[3]/div[2]/div[2]/div/div[2]/div[1]/div/div[2]/div/p']),
+    ("Trast Bank", "https://trustbank.uz/uz/", ['/html/body/div[2]/div[4]/section[2]/div/div/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody/tr[2]/td[2]/div/span', '/html/body/div[2]/div[4]/section[2]/div/div/div/div[1]/div[2]/div[1]/div[1]/table/tbody/tr[2]/td[3]/div/span']),
+    ("Ipoteka Bank", "https://www.ipotekabank.uz/ru/private/services/currency/", ['//*[@id="all"]/div/table/tbody/tr[1]/td[2]', '//*[@id="all"]/div/table/tbody/tr[1]/td[3]']),
+    ("Octo Bank", "https://octobank.uz/uz", ['//*[@id="w-node-_23a24b74-a88d-5f36-44f5-45399e0decee-9e0dece1"]/div[2]/div/div[1]/p', '//*[@id="w-node-_23a24b74-a88d-5f36-44f5-45399e0decee-9e0dece1"]/div[2]/div/div[2]/p']),
     ("Oltin", "https://cbu.uz/oz/banknotes-coins/gold-bars/prices/", [
-        "//table//tr[3]/td[2]/p", "//table//tr[4]/td[2]/p", 
-        "//table//tr[5]/td[2]/p", "//table//tr[6]/td[2]/p", "//table//tr[7]/td[2]/p"
+        "/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[3]/td[2]/p", 
+        "/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[4]/td[2]/p", 
+        "/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[5]/td[2]/p", 
+        "/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[6]/td[2]/p", 
+        "/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[7]/td[2]/p"
     ])
 ]
 
