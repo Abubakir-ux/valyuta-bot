@@ -2,12 +2,13 @@ name: Valyuta Bot
 
 on:
   schedule:
-    - cron: '0 4,9,13 * * *' # O'zbekiston vaqti bilan 09:00, 14:00, 18:00
+    - cron: '0 4,8,15 * * *' # O'zbekiston vaqti: 09:00, 13:00, 20:00
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Kodni yuklab olish
         uses: actions/checkout@v3
