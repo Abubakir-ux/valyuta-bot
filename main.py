@@ -168,6 +168,7 @@ def xabar_shaklla(banks, gold, kanal=True):
 
 def telegram_yuborish(chat_id, xabar):
     """Telegram ga xabar yuboradi"""
+    print(f"📡 Yuborilmoqda... chat_id={chat_id}, token={BOT_TOKEN[:10]}...")
     resp = requests.post(
         f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
         data={
@@ -177,6 +178,7 @@ def telegram_yuborish(chat_id, xabar):
             "disable_web_page_preview": True
         }
     )
+    print(f"📬 Telegram javobi: {resp.status_code} — {resp.text}")
     return resp.status_code == 200
 
 # ==========================================
