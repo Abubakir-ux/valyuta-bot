@@ -16,8 +16,8 @@ if hasattr(time, 'tzset'):
     time.tzset()
 
 # Token va Chat ID — GitHub Secrets dan olinadi
-BOT_TOKEN = os.getenv("8917271946:AAG3tGehTVYXjq_YvvUd5B-wG6lf4fvOneE")
-CHAT_ID = os.getenv("-1003805780800")
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
 
 # Vaqtga qarab salom
 def vaqt_salomi():
