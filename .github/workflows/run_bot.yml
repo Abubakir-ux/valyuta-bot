@@ -2,30 +2,29 @@ name: Valyuta Bot
 
 on:
   schedule:
-    - cron: '0 4,8,15 * * *' # O'zbekiston vaqti: 09:00, 13:00, 20:00
-  workflow_dispatch:
+    - cron: '0 4 * * *'   # 09:00 Toshkent
+    - cron: '0 8 * * *'   # 13:00 Toshkent
+    - cron: '0 15 * * *'  # 20:00 Toshkent
+  workflow_dispatch:       # Qo'lda ham ishlatish uchun
 
 jobs:
-  build:
+  run-bot:
     runs-on: ubuntu-latest
 
     steps:
       - name: Kodni yuklab olish
         uses: actions/checkout@v3
 
-      - name: Pythonni sozlash
+      - name: Python o'rnatish
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10'
 
-      - name: Chrome o'rnatish
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-
-      - name: Kutubxonalarni o'rnatish
-        run: |
-          pip install selenium webdriver-manager requests
+      - name: Kerakli kutubxonalar o'rnatish
+        run: pip install -r requirements.txt
 
       - name: Botni ishga tushirish
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
         run: python main.py
