@@ -25,8 +25,8 @@ if hasattr(time, 'tzset'):
 #   export CHAT_ID="..."
 # GitHub Actions'da bo'lsa -> Settings -> Secrets and variables -> Actions
 # ============================================================
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-CHAT_ID = os.environ.get("CHAT_ID")
+BOT_TOKEN = os.environ.get("8917271946:AAF0ZmXyuApYQd-AZIG56kCvLr5qU2B_y2k")
+CHAT_ID = os.environ.get("-1003805780800")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
