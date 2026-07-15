@@ -1,34 +1,33 @@
-name: Valyuta Bot
+name: Valyuta kurslarini yuborish
 
 on:
   schedule:
-    - cron: '0 4 * * *'    # 09:00 Toshkent vaqti
-    - cron: '0 8 * * *'    # 13:00 Toshkent vaqti
-    - cron: '0 15 * * *'   # 20:00 Toshkent vaqti
-  workflow_dispatch:         # Qo'lda ham ishlatish uchun (test uchun qulay)
+    # Toshkent vaqti bo'yicha: 09:00, 13:00, 21:00 (UTC = Toshkent - 5 soat)
+    - cron: '0 4 * * *'   # 09:00 Toshkent
+    - cron: '0 8 * * *'   # 13:00 Toshkent
+    - cron: '0 16 * * *'  # 21:00 Toshkent
+  workflow_dispatch: {}    # GitHub'da "Run workflow" tugmasi bilan qo'lda ham ishga tushirish mumkin
 
 jobs:
-  send-to-channel:
+  send-rates:
     runs-on: ubuntu-latest
-
     steps:
-      - name: 📥 Kodni yuklab olish
-        uses: actions/checkout@v3
+      - name: Kodni yuklab olish
+        uses: actions/checkout@v4
 
-      - name: 🐍 Python o'rnatish
-        uses: actions/setup-python@v4
+      - name: Python o'rnatish
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.11'
 
-      - name: 📦 Kerakli kutubxonalar
+      - name: Kutubxonalarni o'rnatish
         run: pip install -r requirements.txt
 
-      - name: 🌐 Chrome o'rnatish
-        uses: browser-actions/setup-chrome@latest
+      - name: Chrome o'rnatish (oltin narxi uchun kerak)
+        uses: browser-actions/setup-chrome@v1
 
-      - name: 🤖 Botni ishga tushirish
+      - name: Botni ishga tushirish
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-          MODE: send
         run: python main.py
