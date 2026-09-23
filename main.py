@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import time
 import requests
 from bs4 import BeautifulSoup
@@ -19,18 +20,20 @@ if hasattr(time, 'tzset'):
     time.tzset()
 
 # ============================================================
-# Token va Chat ID — ENDI KODDA EMAS!
-# Serverda/kompyuteringizda muhit o'zgaruvchisi sifatida bering:
-#   export BOT_TOKEN="..."
-#   export CHAT_ID="..."
-# GitHub Actions'da bo'lsa -> Settings -> Secrets and variables -> Actions
+# Token va Chat ID — muhit o'zgaruvchisi sifatida beriladi
+# GitHub Actions -> Settings -> Secrets and variables -> Actions
+# BOT_TOKEN = botfather tokeni
+# CHAT_ID   = kanal ID (masalan @dollorkurslariUZ yoki -100...)
 # ============================================================
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "Accept-Language": "uz,ru;q=0.9,en;q=0.8",
 }
+
+OFFSET_FILE = "offset.txt"
 
 
 def tozalash(matn):
@@ -41,59 +44,81 @@ def tozalash(matn):
     return int(toza_son) if toza_son else 0
 
 
+def tg_send(chat_id, text, parse_mode="HTML"):
+    resp = requests.post(
+        f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+        data={"chat_id": chat_id, "text": text, "parse_mode": parse_mode,
+              "disable_web_page_preview": True},
+    )
+    if resp.status_code != 200:
+        print(f"❌ Telegram xatosi ({chat_id}): {resp.text}")
+    return resp
+
+
 # ============================================================
-# 1) BARCHA BANKLARNING USD KURSI — bank.uz orqali (Selenium'siz!)
-#    bank.uz sahifasida deyarli barcha O'zbekiston banklari bitta
-#    joyda ko'rsatiladi, shuning uchun 10-15 ta saytga alohida
-#    kirishning hojati yo'q — tezroq va barqarorroq.
+# 1) BARCHA BANKLARNING USD KURSI — bank.uz orqali
+# Har bir bank ALOHIDA qayta ishlanadi: birontasi noto'g'ri
+# chiqsa, faqat o'sha bank tashlab ketiladi, qolganlari yuboriladi.
 # ============================================================
-def get_bankuz_rates():
+def get_all_bank_rates():
     url = "https://bank.uz/uz/currency"
     resp = requests.get(url, headers=HEADERS, timeout=30)
     resp.raise_for_status()
     soup = BeautifulSoup(resp.text, "html.parser")
 
-    # USD blokini topamiz (sahifada har bir valyuta uchun alohida blok bor)
-    container = soup.find(id="best_USD")
-    if container is None:
-        # zaxira variant: butun sahifadan qidiramiz
-        container = soup
+    container = soup.find(id="best_USD") or soup
+    html = str(container)
 
-    container_html = str(container)
-
-    # "Sotib olish" (bank sizdan xarid qiladi) va "Sotish" (bank sizga sotadi)
-    # bloklarini ажратамiz. "Sotish" so'zi "Sotib olish" ichida uchramaydi,
-    # shuning uchun bemalol ajratsak bo'ladi.
-    split_idx = container_html.find(">Sotish<")
+    split_idx = html.find(">Sotish<")
     if split_idx == -1:
-        raise ValueError("bank.uz sahifa tuzilishi o'zgargan bo'lishi mumkin (Sotish bo'limi topilmadi)")
+        raise ValueError(
+            f"bank.uz sahifa tuzilishi o'zgargan bo'lishi mumkin "
+            f"(javob uzunligi={len(resp.text)}, status={resp.status_code})"
+        )
 
-    buy_html = container_html[:split_idx]
-    sell_html = container_html[split_idx:]
+    buy_html, sell_html = html[:split_idx], html[split_idx:]
 
-    def extract(html_piece):
-        piece_soup = BeautifulSoup(html_piece, "html.parser")
-        result = {}
+    def extract(piece_html):
+        piece_soup = BeautifulSoup(piece_html, "html.parser")
+        out = {}
         for a in piece_soup.find_all("a", href=re.compile(r"/currency/bank/")):
             name = a.get_text(strip=True)
             if not name:
                 continue
-            price_node = a.find_next(string=re.compile(r"so'm"))
-            val = tozalash(price_node)
-            if val > 0 and name not in result:
+            try:
+                price_node = a.find_next(string=re.compile(r"so'm"))
+                val = tozalash(price_node)
                 href = a.get("href", "")
                 full_url = "https://bank.uz" + href if href.startswith("/") else href
-                result[name] = {"val": val, "url": full_url}
-        return result
+                if val > 0 and name not in out:
+                    out[name] = {"val": val, "url": full_url}
+            except Exception as e:
+                print(f"⚠️ '{name}' o'tkazib yuborildi: {e}")
+                continue
+        return out
 
     buy = extract(buy_html)
     sell = extract(sell_html)
-    return buy, sell
+
+    banks = []
+    skipped = []
+    for name in set(buy.keys()) | set(sell.keys()):
+        if name in buy and name in sell:
+            banks.append({
+                "name": name,
+                "buy_num": buy[name]["val"],
+                "sell_num": sell[name]["val"],
+                "url": buy[name]["url"],
+            })
+        else:
+            skipped.append(name)
+
+    banks.sort(key=lambda r: r["buy_num"], reverse=True)
+    return banks, skipped
 
 
 # ============================================================
-# 2) OLTIN NARXI — cbu.uz (Markaziy bank), eski Selenium usuli
-#    saqlanib qolgan, chunki faqat bitta sayt va u ishlab turibdi.
+# 2) OLTIN NARXI — cbu.uz (Markaziy bank)
 # ============================================================
 GOLD_URL = "https://cbu.uz/oz/banknotes-coins/gold-bars/prices/"
 GOLD_XPATHS = [
@@ -132,39 +157,28 @@ def get_gold_prices(driver_path):
 
 
 # ============================================================
-# ASOSIY ISHGA TUSHIRISH FUNKSIYASI
+# REJIM 1: "send" — kurslarni kanalga yuborish
+# (GitHub Actions'da 09:00, 13:00, 19:00 da cron orqali chaqiriladi)
 # ============================================================
-def run_bot():
+def run_send():
     if not BOT_TOKEN or not CHAT_ID:
-        print("❌ BOT_TOKEN yoki CHAT_ID muhit o'zgaruvchisi topilmadi. "
-              "Ularni environment variable sifatida belgilang.")
+        print("❌ BOT_TOKEN yoki CHAT_ID muhit o'zgaruvchisi topilmadi.")
         return
 
     print("💱 bank.uz orqali barcha banklar kursi olinmoqda...")
     try:
-        buy, sell = get_bankuz_rates()
+        banks, skipped = get_all_bank_rates()
     except Exception as e:
         print(f"❌ bank.uz'dan ma'lumot olishda xatolik: {e}")
         return
 
-    # faqat ikkala ro'yxatda ham (xarid va sotuv) mavjud banklarni olamiz
-    common_names = [n for n in buy.keys() if n in sell]
+    print(f"✅ {len(banks)} ta bank topildi.")
+    if skipped:
+        print(f"⚠️ O'tkazib yuborildi ({len(skipped)} ta): {', '.join(skipped)}")
 
-    print(f"✅ {len(common_names)} ta bank topildi.")
-    if len(common_names) < 5:
+    if len(banks) < 5:
         print("❌ Juda kam bank topildi, ehtimol sayt tuzilishi o'zgargan. Xabar yuborilmadi.")
         return
-
-    banks = []
-    for name in common_names:
-        banks.append({
-            "name": name,
-            "buy_num": buy[name]["val"],
-            "sell_num": sell[name]["val"],
-            "url": buy[name]["url"],
-        })
-    # eng yaxshi narx yuqorida turishi uchun xarid bo'yicha kamayish tartibida saralaymiz
-    banks.sort(key=lambda r: r["buy_num"], reverse=True)
 
     print("🥇 Oltin narxi olinmoqda...")
     path = ChromeDriverManager().install()
@@ -187,20 +201,93 @@ def run_bot():
 
     if gold_values:
         g = gold_values
-        xabar += f"<b>💰 Quyma oltin narxlari:</b>\n🟡 5 грамм: {g[0]} | 10 грамм: {g[1]}\n🟡 20 грамм: {g[2]} | 50 грамм: {g[3]}\n🟡 100 грамм: {g[4]}\n"
+        xabar += (f"<b>💰 Quyma oltin narxlari:</b>\n"
+                  f"🟡 5 грамм: {g[0]} | 10 грамм: {g[1]}\n"
+                  f"🟡 20 грамм: {g[2]} | 50 грамм: {g[3]}\n"
+                  f"🟡 100 грамм: {g[4]}\n")
+
+    if skipped:
+        xabar += f"\n<i>⚠️ Ushbu banklar o'tkazib yuborildi: {', '.join(skipped)}</i>\n"
 
     xabar += f"\n🕒 <b>Yangilandi:</b> {vaqt}\n📢 @dollorkurslariUZ"
 
     print("📤 Telegramga yuborilmoqda...")
-    resp = requests.post(
-        f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-        data={"chat_id": CHAT_ID, "text": xabar, "parse_mode": "HTML", "disable_web_page_preview": True}
+    tg_send(CHAT_ID, xabar)
+    print(f"✅ Yuborildi: {len(banks)} ta bank kursi. O'tkazib yuborilganlar: {len(skipped)} ta.")
+
+
+# ============================================================
+# REJIM 2: "listen" — /start va kanalga admin qilib qo'shilganini tinglash
+# (GitHub Actions'da har 2-3 daqiqada chaqiriladi)
+# ============================================================
+def run_listen():
+    if not BOT_TOKEN:
+        print("❌ BOT_TOKEN topilmadi.")
+        return
+
+    try:
+        with open(OFFSET_FILE) as f:
+            offset = int(f.read().strip())
+    except (FileNotFoundError, ValueError):
+        offset = 0
+
+    resp = requests.get(
+        f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates",
+        params={"offset": offset, "timeout": 0, "allowed_updates": '["message","my_chat_member"]'},
+        timeout=20,
     )
-    if resp.status_code != 200:
-        print(f"❌ Telegram xatosi: {resp.text}")
-    else:
-        print("✅ Telegram'ga muvaffaqiyatli yuborildi!")
+    data = resp.json()
+    if not data.get("ok"):
+        print(f"❌ getUpdates xatosi: {data}")
+        return
+
+    updates = data.get("result", [])
+    print(f"📥 {len(updates)} ta yangi hodisa.")
+
+    for u in updates:
+        offset = u["update_id"] + 1
+
+        # /start bosilganda
+        msg = u.get("message")
+        if msg and msg.get("text", "").startswith("/start"):
+            chat_id = msg["chat"]["id"]
+            matn = (
+                "👋 Salom!\n\n"
+                "Men O'zbekiston banklaridagi dollar kurslari va quyma oltin "
+                "narxlarini kuzataman.\n\n"
+                "📌 Meni kanalingizga <b>admin</b> qilib qo'shing — har kuni soat "
+                "09:00, 13:00 va 19:00 da yangilangan narxlarni avtomatik yuborib turaman."
+            )
+            tg_send(chat_id, matn)
+            print(f"✅ /start javobi yuborildi: {chat_id}")
+
+        # kanalga admin qilib qo'shilganda
+        cm = u.get("my_chat_member")
+        if cm:
+            chat = cm["chat"]
+            new_status = cm["new_chat_member"]["status"]
+            if new_status == "administrator":
+                tg_send(
+                    chat["id"],
+                    "✅ Admin qilib qo'shganingiz uchun rahmat!\n"
+                    "Endi har kuni 09:00, 13:00, 19:00 da kurslarni shu yerga yuboraman.",
+                )
+                print(f"✅ Admin xabari yuborildi: {chat['id']} ({chat.get('title')})")
+
+    with open(OFFSET_FILE, "w") as f:
+        f.write(str(offset))
 
 
+# ============================================================
+# KIRISH NUQTASI
+# python main.py send    -> kurslarni yuborish
+# python main.py listen  -> /start va admin hodisalarini tinglash
+# ============================================================
 if __name__ == "__main__":
-    run_bot()
+    mode = sys.argv[1] if len(sys.argv) > 1 else "send"
+    if mode == "send":
+        run_send()
+    elif mode == "listen":
+        run_listen()
+    else:
+        print(f"❌ Noma'lum rejim: {mode}. 'send' yoki 'listen' dan birini bering.")
