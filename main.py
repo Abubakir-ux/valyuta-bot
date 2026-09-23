@@ -69,12 +69,26 @@ def get_all_bank_rates():
     container = soup.find(id="best_USD") or soup
     html = str(container)
 
-    split_idx = html.find(">Sotish<")
-    if split_idx == -1:
-        raise ValueError(
-            f"bank.uz sahifa tuzilishi o'zgargan bo'lishi mumkin "
-            f"(javob uzunligi={len(resp.text)}, status={resp.status_code})"
-        )
+    # ">Sotish<" — orasida bo'sh joy/yangi qator bo'lishi mumkin, shuning uchun
+    # oddiy .find() emas, whitespace'ga chidamli regex ishlatamiz.
+    match = re.search(r">\s*Sotish\s*<", html)
+
+    if match is None:
+        # muqobil urinish: BeautifulSoup orqali matni aynan "Sotish" bo'lgan
+        # (boshqa so'z ichida emas, mustaqil) tegni qidiramiz.
+        sotish_tag = None
+        for tag in container.find_all(True):
+            if tag.get_text(strip=True) == "Sotish" and len(tag.find_all(True)) == 0:
+                sotish_tag = tag
+                break
+        if sotish_tag is None:
+            raise ValueError(
+                f"bank.uz sahifa tuzilishi o'zgargan bo'lishi mumkin "
+                f"(javob uzunligi={len(resp.text)}, status={resp.status_code})"
+            )
+        split_idx = html.find(str(sotish_tag))
+    else:
+        split_idx = match.start()
 
     buy_html, sell_html = html[:split_idx], html[split_idx:]
 
