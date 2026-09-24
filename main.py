@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import time
+import datetime
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -34,6 +35,22 @@ HEADERS = {
 }
 
 OFFSET_FILE = "offset.txt"
+
+
+def wait_until_exact(hour, minute=0):
+    """Aniq HH:MM:00 (Toshkent vaqti) gacha kutadi.
+    GitHub Actions cron'ni bir necha daqiqa oldinroq ishga tushirsak,
+    runner tayyor turadi va shu funksiya orqali aniq soniyagacha kutadi —
+    shunda GitHub'ning cron kechikishi (odatda 1-10 daqiqa) muammo bo'lmaydi."""
+    now = datetime.datetime.now()
+    target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
+    if target < now:
+        target += datetime.timedelta(days=1)
+    wait_seconds = (target - now).total_seconds()
+    if wait_seconds > 0:
+        print(f"⏳ Aniq {hour:02d}:{minute:02d}:00 gacha {int(wait_seconds)} soniya kutilmoqda...")
+        time.sleep(wait_seconds)
+    print(f"🚀 Vaqt keldi: {datetime.datetime.now().strftime('%H:%M:%S')} — yuborishni boshlaymiz.")
 
 
 def tozalash(matn):
@@ -174,10 +191,15 @@ def get_gold_prices(driver_path):
 # REJIM 1: "send" — kurslarni kanalga yuborish
 # (GitHub Actions'da 09:00, 13:00, 19:00 da cron orqali chaqiriladi)
 # ============================================================
-def run_send():
+def run_send(target_hour=None):
     if not BOT_TOKEN or not CHAT_ID:
         print("❌ BOT_TOKEN yoki CHAT_ID muhit o'zgaruvchisi topilmadi.")
         return
+
+    # agar aniq soat berilgan bo'lsa (masalan 9, 13, 19) —
+    # shu soatning aniq 00-soniyasigacha kutib turamiz, keyin yuboramiz.
+    if target_hour is not None:
+        wait_until_exact(int(target_hour))
 
     print("💱 bank.uz orqali barcha banklar kursi olinmoqda...")
     try:
@@ -300,7 +322,10 @@ def run_listen():
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "send"
     if mode == "send":
-        run_send()
+        # python main.py send        -> darhol yuboradi (qo'lda test uchun)
+        # python main.py send 9      -> aniq 09:00:00 gacha kutib, keyin yuboradi
+        hour_arg = sys.argv[2] if len(sys.argv) > 2 else None
+        run_send(target_hour=hour_arg)
     elif mode == "listen":
         run_listen()
     else:
