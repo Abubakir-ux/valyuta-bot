@@ -2,8 +2,10 @@ name: Valyuta bot
 
 on:
   schedule:
-    - cron: "0 4,8,14 * * *"   # 09:00, 13:00, 19:00 Toshkent vaqti — kurslarni yuborish
-    - cron: "*/3 * * * *"      # har 3 daqiqada — /start va admin holatini tinglash
+    - cron: "55 3 * * *"    # 08:55 Toshkent -> 09:00 gacha kutib yuboradi
+    - cron: "55 7 * * *"    # 12:55 Toshkent -> 13:00 gacha kutib yuboradi
+    - cron: "55 13 * * *"   # 18:55 Toshkent -> 19:00 gacha kutib yuboradi
+    - cron: "*/3 * * * *"   # har 3 daqiqada — /start va admin holatini tinglash
   workflow_dispatch:
     inputs:
       mode:
@@ -29,22 +31,23 @@ jobs:
       - name: Chrome o'rnatish (Selenium uchun)
         uses: browser-actions/setup-chrome@v1
 
-      - name: Rejimni aniqlash
+      - name: Rejimni va aniq soatni aniqlash
         id: mode
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "mode=${{ github.event.inputs.mode }}" >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event.schedule }}" = "0 4,8,14 * * *" ]; then
-            echo "mode=send" >> "$GITHUB_OUTPUT"
-          else
-            echo "mode=listen" >> "$GITHUB_OUTPUT"
-          fi
+          case "${{ github.event.schedule }}" in
+            "55 3 * * *")  echo "mode=send"   >> "$GITHUB_OUTPUT"; echo "hour=9"  >> "$GITHUB_OUTPUT" ;;
+            "55 7 * * *")  echo "mode=send"   >> "$GITHUB_OUTPUT"; echo "hour=13" >> "$GITHUB_OUTPUT" ;;
+            "55 13 * * *") echo "mode=send"   >> "$GITHUB_OUTPUT"; echo "hour=19" >> "$GITHUB_OUTPUT" ;;
+            "*/3 * * * *") echo "mode=listen" >> "$GITHUB_OUTPUT" ;;
+            *) echo "mode=${{ github.event.inputs.mode }}" >> "$GITHUB_OUTPUT" ;;
+          esac
 
       - name: Botni ishga tushirish
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
-        run: python main.py ${{ steps.mode.outputs.mode }}
+          TZ: Asia/Tashkent
+        run: python main.py ${{ steps.mode.outputs.mode }} ${{ steps.mode.outputs.hour }}
 
       - name: offset.txt'ni saqlash (faqat listen rejimida kerak)
         if: steps.mode.outputs.mode == 'listen'
