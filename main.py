@@ -231,34 +231,25 @@ def run_send(target_hour=None):
     eng_yahshi_xarid_banklar = ", ".join(sorted({r["name"] for r in banks if r["buy_num"] == ey_x_val}))
     eng_yahshi_sotuv_banklar = ", ".join(sorted({r["name"] for r in banks if r["sell_num"] == ey_s_val}))
 
-    xabar = f"<b>🏦 KUNLIK VALYUTA NARXLARI ($)</b>\n\n"
-
-    # <pre> bloki — monospace shrift, shuning uchun ustunlar aniq tekis chiqadi
-    xabar += "<pre>"
-    xabar += f"{'':2}{'Bank':<19}{'Xarid':>8}{'Sotuv':>8}\n"
-    xabar += "-" * 37 + "\n"
+    xabar = f"<b>🏦 KUNLIK VALYUTA NARXLARI ($)</b>\n— — — — — — — — — — — — — — —\n"
+    xabar += f"🏛 Bank nomi | Xarid | Sotuv \n— — — — — — — — — — — — — — —\n"
     for r in banks:
-        # eng yuqori xarid yoki eng past sotuv narxini beradigan bank(lar) — ★ bilan ajralib turadi
-        belgi = "★" if (r["buy_num"] == ey_x_val or r["sell_num"] == ey_s_val) else " "
         buy_str = f"{r['buy_num']:,}".replace(",", " ")
         sell_str = f"{r['sell_num']:,}".replace(",", " ")
-        nom = r["name"] if len(r["name"]) <= 18 else r["name"][:17] + "…"
-        xabar += f"{belgi} {nom:<18}{buy_str:>8}{sell_str:>8}\n"
-    xabar += "</pre>\n"
-
-    xabar += f"\n⭐ <b>Eng yaxshi xarid narxi:</b> {ey_x} so'm — <b>{eng_yahshi_xarid_banklar}</b>\n"
-    xabar += f"⭐ <b>Eng yaxshi sotuv narxi:</b> {ey_s} so'm — <b>{eng_yahshi_sotuv_banklar}</b>\n"
+        # eng yuqori xarid yoki eng past sotuv narxini beradigan bank(lar) — ⭐ bilan ajralib turadi
+        icon = "⭐" if (r["buy_num"] == ey_x_val or r["sell_num"] == ey_s_val) else "🔹"
+        xabar += f"{icon} <a href='{r['url']}'>{r['name']}</a> | {buy_str} | {sell_str}\n"
+    xabar += f"— — — — — — — — — — — — — — —\n"
+    xabar += f"<blockquote>⭐ Eng yaxshi xarid: {ey_x} so'm — {eng_yahshi_xarid_banklar}\n⭐ Eng yaxshi sotuv: {ey_s} so'm — {eng_yahshi_sotuv_banklar}</blockquote>\n"
 
     if gold_values:
-        # cbu.uz'dan kelgan matnni tozalab, valyuta jadvali kabi "9 000 000" formatiga solamiz,
-        # va shu tarzda monospace jadvalga joylaymiz
+        # cbu.uz'dan kelgan matnni tozalab, valyuta jadvali kabi "9 000 000" formatiga solamiz
         gramlar = ["5 gramm", "10 gramm", "20 gramm", "50 gramm", "100 gramm"]
-        xabar += f"\n<b>💰 Quyma oltin narxlari:</b>\n<pre>"
+        xabar += f"\n<b>💰 Quyma oltin narxlari:</b>\n"
         for gram_nomi, xom_qiymat in zip(gramlar, gold_values):
             son = tozalash(xom_qiymat)
             formatlangan = f"{son:,}".replace(",", " ") if son else xom_qiymat
-            xabar += f"{gram_nomi:<10}{formatlangan:>12} so'm\n"
-        xabar += "</pre>\n"
+            xabar += f"🟡 {gram_nomi}: {formatlangan} so'm\n"
 
     if skipped:
         xabar += f"\n<i>⚠️ Ushbu banklar o'tkazib yuborildi: {', '.join(skipped)}</i>\n"
