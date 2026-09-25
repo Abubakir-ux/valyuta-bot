@@ -235,15 +235,15 @@ def run_send(target_hour=None):
 
     # <pre> bloki — monospace shrift, shuning uchun ustunlar aniq tekis chiqadi
     xabar += "<pre>"
-    xabar += f"{'':2}{'Bank':<15}{'Xarid':>8}{'Sotuv':>8}\n"
-    xabar += "-" * 33 + "\n"
+    xabar += f"{'':2}{'Bank':<19}{'Xarid':>8}{'Sotuv':>8}\n"
+    xabar += "-" * 37 + "\n"
     for r in banks:
         # eng yuqori xarid yoki eng past sotuv narxini beradigan bank(lar) — ★ bilan ajralib turadi
         belgi = "★" if (r["buy_num"] == ey_x_val or r["sell_num"] == ey_s_val) else " "
         buy_str = f"{r['buy_num']:,}".replace(",", " ")
         sell_str = f"{r['sell_num']:,}".replace(",", " ")
-        nom = r["name"][:15]
-        xabar += f"{belgi} {nom:<14}{buy_str:>8}{sell_str:>8}\n"
+        nom = r["name"] if len(r["name"]) <= 18 else r["name"][:17] + "…"
+        xabar += f"{belgi} {nom:<18}{buy_str:>8}{sell_str:>8}\n"
     xabar += "</pre>\n"
 
     xabar += f"\n⭐ <b>Eng yaxshi xarid narxi:</b> {ey_x} so'm — <b>{eng_yahshi_xarid_banklar}</b>\n"
@@ -360,3 +360,4 @@ if __name__ == "__main__":
         run_listen()
     else:
         print(f"❌ Noma'lum rejim: {mode}. 'send' yoki 'listen' dan birini bering.")
+        
