@@ -28,6 +28,7 @@ if hasattr(time, 'tzset'):
 # ============================================================
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
+OWNER_ID = os.environ.get("OWNER_ID")  # faqat shu Telegram ID'ga ega odamga bot javob beradi
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -231,16 +232,21 @@ def run_send(target_hour=None):
     for r in banks:
         buy_str = f"{r['buy_num']:,}".replace(",", " ")
         sell_str = f"{r['sell_num']:,}".replace(",", " ")
-        xabar += f"🔹 <a href='{r['url']}'>{r['name']:<14}</a> | {buy_str:<7} | {sell_str}\n"
+        # eng yuqori xarid yoki eng past sotuv narxini beradigan bank(lar) — ⭐ bilan ajralib turadi
+        icon = "⭐" if (r["buy_num"] == ey_x_val or r["sell_num"] == ey_s_val) else "🔹"
+        xabar += f"{icon} <a href='{r['url']}'>{r['name']:<14}</a> | {buy_str:<7} | {sell_str}\n"
     xabar += f"— — — — — — — — — — — — — — —\n"
     xabar += f"<blockquote>Eng yaxshi narx: | {ey_x} | {ey_s} 📈</blockquote>\n"
 
     if gold_values:
-        g = gold_values
-        xabar += (f"<b>💰 Quyma oltin narxlari:</b>\n"
-                  f"🟡 5 грамм: {g[0]} | 10 грамм: {g[1]}\n"
-                  f"🟡 20 грамм: {g[2]} | 50 грамм: {g[3]}\n"
-                  f"🟡 100 грамм: {g[4]}\n")
+        # cbu.uz'dan kelgan matnni tozalab, valyuta jadvali kabi "9 000 000" formatiga solamiz
+        gramlar = ["5 gramm", "10 gramm", "20 gramm", "50 gramm", "100 gramm"]
+        xabar += f"\n<b>💰 Quyma oltin narxlari:</b>\n— — — — — — — — — — — — — — —\n"
+        for gram_nomi, xom_qiymat in zip(gramlar, gold_values):
+            son = tozalash(xom_qiymat)
+            formatlangan = f"{son:,}".replace(",", " ") if son else xom_qiymat
+            xabar += f"🟡 {gram_nomi:<9} | {formatlangan} so'm\n"
+        xabar += f"— — — — — — — — — — — — — — —\n"
 
     if skipped:
         xabar += f"\n<i>⚠️ Ushbu banklar o'tkazib yuborildi: {', '.join(skipped)}</i>\n"
@@ -283,10 +289,16 @@ def run_listen():
     for u in updates:
         offset = u["update_id"] + 1
 
-        # /start bosilganda
+        # /start bosilganda — FAQAT egasi (OWNER_ID) uchun javob beradi
         msg = u.get("message")
         if msg and msg.get("text", "").startswith("/start"):
+            user_id = str(msg["from"]["id"])
             chat_id = msg["chat"]["id"]
+
+            if OWNER_ID and user_id != str(OWNER_ID):
+                print(f"⛔ Begona foydalanuvchi /start bosdi (id={user_id}) — e'tiborsiz qoldirildi.")
+                continue
+
             matn = (
                 "👋 Salom!\n\n"
                 "Men O'zbekiston banklaridagi dollar kurslari va quyma oltin "
@@ -297,11 +309,17 @@ def run_listen():
             tg_send(chat_id, matn)
             print(f"✅ /start javobi yuborildi: {chat_id}")
 
-        # kanalga admin qilib qo'shilganda
+        # kanalga admin qilib qo'shilganda — FAQAT egasi qo'shgan bo'lsa xabar beradi
         cm = u.get("my_chat_member")
         if cm:
             chat = cm["chat"]
             new_status = cm["new_chat_member"]["status"]
+            actor_id = str(cm["from"]["id"])
+
+            if OWNER_ID and actor_id != str(OWNER_ID):
+                print(f"⛔ Begona odam botni admin qildi (id={actor_id}) — e'tiborsiz qoldirildi.")
+                continue
+
             if new_status == "administrator":
                 tg_send(
                     chat["id"],
