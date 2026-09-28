@@ -2,16 +2,19 @@ name: Valyuta bot
 
 on:
   schedule:
-    - cron: "55 3 * * *"    # 08:55 Toshkent -> 09:00 gacha kutib yuboradi
-    - cron: "55 7 * * *"    # 12:55 Toshkent -> 13:00 gacha kutib yuboradi
-    - cron: "55 13 * * *"   # 18:55 Toshkent -> 19:00 gacha kutib yuboradi
-    - cron: "*/3 * * * *"   # har 3 daqiqada — /start va admin holatini tinglash
+    - cron: "55 3 * * *"    # 08:55 Toshkent -> 09:00:00 gacha kutib yuboradi
+    - cron: "55 7 * * *"    # 12:55 Toshkent -> 13:00:00 gacha kutib yuboradi
+    - cron: "55 13 * * *"   # 18:55 Toshkent -> 19:00:00 gacha kutib yuboradi
+    - cron: "*/3 * * * *"   # har 3 daqiqada - /start va admin holatini tinglash
   workflow_dispatch:
     inputs:
       mode:
         description: "Rejim: send yoki listen"
         required: false
         default: "send"
+
+permissions:
+  contents: write            # last_rates.json va offset.txt ni repoga push qilish uchun
 
 jobs:
   run-bot:
@@ -46,14 +49,26 @@ jobs:
         env:
           BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
           CHAT_ID: ${{ secrets.CHAT_ID }}
+          OWNER_ID: ${{ secrets.OWNER_ID }}
           TZ: Asia/Tashkent
         run: python main.py ${{ steps.mode.outputs.mode }} ${{ steps.mode.outputs.hour }}
 
-      - name: offset.txt'ni saqlash (faqat listen rejimida kerak)
+      - name: Oxirgi kursni saqlash (send rejimida)
+        if: steps.mode.outputs.mode == 'send'
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add last_rates.json
+          git commit -m "kurs yangilandi" || echo "o'zgarish yo'q"
+          git pull --rebase
+          git push
+
+      - name: offset.txt'ni saqlash (listen rejimida)
         if: steps.mode.outputs.mode == 'listen'
         run: |
           git config user.name "bot"
           git config user.email "bot@users.noreply.github.com"
           git add offset.txt
           git commit -m "offset yangilandi" || echo "o'zgarish yo'q"
+          git pull --rebase
           git push
