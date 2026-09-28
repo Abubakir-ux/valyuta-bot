@@ -14,11 +14,12 @@ on:
         default: "send"
 
 permissions:
-  contents: write            # last_rates.json va offset.txt ni repoga push qilish uchun
+  contents: write
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Repo'ni olish
         uses: actions/checkout@v4
@@ -51,6 +52,7 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           OWNER_ID: ${{ secrets.OWNER_ID }}
           TZ: Asia/Tashkent
+          PYTHONUNBUFFERED: "1"
         run: python main.py ${{ steps.mode.outputs.mode }} ${{ steps.mode.outputs.hour }}
 
       - name: Oxirgi kursni saqlash (send rejimida)
