@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import json
 import time
 import datetime
 import requests
@@ -189,6 +190,63 @@ def get_gold_prices(driver_path):
 
 
 # ============================================================
+# YORDAMCHI FUNKSIYALAR: egasiga xabar, oldingi kursni eslab qolish, MB kursi
+# ============================================================
+LAST_RATES_FILE = "last_rates.json"
+
+
+def notify_owner(text):
+    """Xatolik bo'lsa egasiga (OWNER_ID) shaxsiy xabar yuboradi.
+    Egasi botga kamida bir marta /start bosgan bo'lishi kerak."""
+    if not BOT_TOKEN or not OWNER_ID:
+        print("ℹ️ OWNER_ID yo'q, egasiga xabar yuborilmadi.")
+        return
+    try:
+        tg_send(OWNER_ID, text, parse_mode=None)
+    except Exception as e:
+        print(f"⚠️ Egasiga xabar yuborib bo'lmadi: {e}")
+
+
+def load_last_rates():
+    try:
+        with open(LAST_RATES_FILE) as f:
+            return json.load(f)
+    except (FileNotFoundError, ValueError):
+        return {}
+
+
+def save_last_rates(best_buy, best_sell):
+    with open(LAST_RATES_FILE, "w") as f:
+        json.dump({"best_buy": best_buy, "best_sell": best_sell,
+                   "time": time.strftime('%d.%m.%Y %H:%M')}, f)
+
+
+def farq_belgisi(yangi, eski):
+    """Oldingi yuborilgan kursga nisbatan o'zgarish: ▲ +40 yoki ▼ -20."""
+    if eski is None:
+        return ""
+    farq = yangi - eski
+    if farq > 0:
+        return f" (▲ +{farq})"
+    if farq < 0:
+        return f" (▼ {farq})"
+    return " (➖ 0)"
+
+
+def get_cbu_usd_rate():
+    """Markaziy bankning rasmiy USD kursi. Olinmasa None qaytaradi (xabar shundoq ham yuboriladi)."""
+    try:
+        resp = requests.get("https://cbu.uz/oz/arkhiv-kursov-valyut/json/USD/",
+                            headers=HEADERS, timeout=20)
+        resp.raise_for_status()
+        rate = float(resp.json()[0]["Rate"])
+        return f"{rate:,.2f}".replace(",", " ")
+    except Exception as e:
+        print(f"⚠️ MB kursini olishda xatolik: {e}")
+        return None
+
+
+# ============================================================
 # REJIM 1: "send" — kurslarni kanalga yuborish
 # (GitHub Actions'da 09:00, 13:00, 19:00 da cron orqali chaqiriladi)
 # ============================================================
@@ -207,6 +265,7 @@ def run_send(target_hour=None):
         banks, skipped = get_all_bank_rates()
     except Exception as e:
         print(f"❌ bank.uz'dan ma'lumot olishda xatolik: {e}")
+        notify_owner(f"⚠️ Kurs kanalga yuborilmadi.\nSabab: bank.uz'dan ma'lumot olib bo'lmadi.\n{e}")
         return
 
     print(f"✅ {len(banks)} ta bank topildi.")
@@ -215,11 +274,16 @@ def run_send(target_hour=None):
 
     if len(banks) < 5:
         print("❌ Juda kam bank topildi, ehtimol sayt tuzilishi o'zgargan. Xabar yuborilmadi.")
+        notify_owner(f"⚠️ Kurs kanalga yuborilmadi.\nSabab: faqat {len(banks)} ta bank topildi (sayt tuzilishi o'zgargan bo'lishi mumkin).")
         return
 
     print("🥇 Oltin narxi olinmoqda...")
     path = ChromeDriverManager().install()
     gold_values = get_gold_prices(path)
+    if not gold_values:
+        notify_owner("⚠️ Oltin narxi olinmadi (cbu.uz XPath o'zgargan bo'lishi mumkin). Xabar oltin narxisiz yuborildi.")
+
+    mb_kursi = get_cbu_usd_rate()
 
     ey_x_val = max(r["buy_num"] for r in banks)
     ey_s_val = min(r["sell_num"] for r in banks)
@@ -227,11 +291,19 @@ def run_send(target_hour=None):
     ey_s = f"{ey_s_val:,}".replace(",", " ")
     vaqt = time.strftime('%d.%m.%Y %H:%M')
 
+    # oldingi yuborilgan kursga nisbatan o'zgarish
+    oldingi = load_last_rates()
+    xarid_farq = farq_belgisi(ey_x_val, oldingi.get("best_buy"))
+    sotuv_farq = farq_belgisi(ey_s_val, oldingi.get("best_sell"))
+
     # eng yaxshi narx(lar)ni beruvchi bank nomlari (bir nechta bank teng bo'lishi mumkin)
     eng_yahshi_xarid_banklar = ", ".join(sorted({r["name"] for r in banks if r["buy_num"] == ey_x_val}))
     eng_yahshi_sotuv_banklar = ", ".join(sorted({r["name"] for r in banks if r["sell_num"] == ey_s_val}))
 
-    xabar = f"<b>🏦 KUNLIK VALYUTA NARXLARI ($)</b>\n— — — — — — — — — — — — — — —\n"
+    xabar = f"<b>🏦 KUNLIK VALYUTA NARXLARI ($)</b>\n"
+    if mb_kursi:
+        xabar += f"🏛 <b>Markaziy bank kursi:</b> {mb_kursi} so'm\n"
+    xabar += f"— — — — — — — — — — — — — — —\n"
     xabar += f"🏛 Bank nomi | Xarid | Sotuv \n— — — — — — — — — — — — — — —\n"
     for r in banks:
         buy_str = f"{r['buy_num']:,}".replace(",", " ")
@@ -240,7 +312,8 @@ def run_send(target_hour=None):
         icon = "⭐" if (r["buy_num"] == ey_x_val or r["sell_num"] == ey_s_val) else "🔹"
         xabar += f"{icon} <a href='{r['url']}'>{r['name']}</a> | {buy_str} | {sell_str}\n"
     xabar += f"— — — — — — — — — — — — — — —\n"
-    xabar += f"<blockquote>⭐ Eng yaxshi xarid: {ey_x} so'm — {eng_yahshi_xarid_banklar}\n⭐ Eng yaxshi sotuv: {ey_s} so'm — {eng_yahshi_sotuv_banklar}</blockquote>\n"
+    xabar += (f"<blockquote>⭐ Eng yaxshi xarid: {ey_x} so'm{xarid_farq} — {eng_yahshi_xarid_banklar}\n"
+              f"⭐ Eng yaxshi sotuv: {ey_s} so'm{sotuv_farq} — {eng_yahshi_sotuv_banklar}</blockquote>\n")
 
     if gold_values:
         # cbu.uz'dan kelgan matnni tozalab, valyuta jadvali kabi "9 000 000" formatiga solamiz
@@ -257,7 +330,13 @@ def run_send(target_hour=None):
     xabar += f"\n🕒 <b>Yangilandi:</b> {vaqt}\n📢 @dollorkurslariUZ"
 
     print("📤 Telegramga yuborilmoqda...")
-    tg_send(CHAT_ID, xabar)
+    resp = tg_send(CHAT_ID, xabar)
+    if resp.status_code != 200:
+        notify_owner(f"⚠️ Kurs kanalga yuborilmadi.\nSabab: Telegram xatosi: {resp.text}")
+        return
+
+    # faqat muvaffaqiyatli yuborilgandan keyin keyingi safar solishtirish uchun eslab qolamiz
+    save_last_rates(ey_x_val, ey_s_val)
     print(f"✅ Yuborildi: {len(banks)} ta bank kursi. O'tkazib yuborilganlar: {len(skipped)} ta.")
 
 
@@ -351,4 +430,3 @@ if __name__ == "__main__":
         run_listen()
     else:
         print(f"❌ Noma'lum rejim: {mode}. 'send' yoki 'listen' dan birini bering.")
-        
