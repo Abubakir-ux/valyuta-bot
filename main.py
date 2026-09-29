@@ -86,8 +86,21 @@ def tg_send(chat_id, text, parse_mode="HTML"):
 # ============================================================
 def get_all_bank_rates():
     url = "https://bank.uz/uz/currency"
-    resp = requests.get(url, headers=HEADERS, timeout=30)
-    resp.raise_for_status()
+
+    # tarmoq vaqtincha kechiksa, 3 martagacha qayta urinib ko'ramiz
+    resp = None
+    for urinish in range(1, 4):
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=30)
+            resp.raise_for_status()
+            break
+        except requests.exceptions.RequestException as e:
+            print(f"⚠️ bank.uz'ga so'rov {urinish}-marta muvaffaqiyatsiz: {e}")
+            if urinish < 3:
+                time.sleep(5 * urinish)  # 5s, keyin 10s kutib qayta urinadi
+            else:
+                raise
+
     soup = BeautifulSoup(resp.text, "html.parser")
 
     container = soup.find(id="best_USD") or soup
