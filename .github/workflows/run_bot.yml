@@ -2,24 +2,24 @@ name: Valyuta bot
 
 on:
   schedule:
-    - cron: "55 3 * * *"    # 08:55 Toshkent -> 09:00:00 gacha kutib yuboradi
-    - cron: "55 7 * * *"    # 12:55 Toshkent -> 13:00:00 gacha kutib yuboradi
-    - cron: "55 13 * * *"   # 18:55 Toshkent -> 19:00:00 gacha kutib yuboradi
-    - cron: "*/3 * * * *"   # har 3 daqiqada - /start va admin holatini tinglash
+    - cron: "55 3 * * *"    # 08:55 Tashkent -> waits until 09:00:00, then sends
+    - cron: "55 7 * * *"    # 12:55 Tashkent -> waits until 13:00:00, then sends
+    - cron: "55 13 * * *"   # 18:55 Tashkent -> waits until 19:00:00, then sends
+    - cron: "*/3 * * * *"   # every 3 minutes - listens for /start and admin changes
   workflow_dispatch:
     inputs:
       mode:
-        description: "Rejim: send yoki listen"
+        description: "Mode: send or listen"
         required: false
         default: "send"
 
 permissions:
-  contents: write
+  contents: write            # needed to push last_rates.json and offset.txt
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 20      # a stuck run gets killed after 20 minutes
     steps:
       - name: Repo'ni olish
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
           CHAT_ID: ${{ secrets.CHAT_ID }}
           OWNER_ID: ${{ secrets.OWNER_ID }}
           TZ: Asia/Tashkent
-          PYTHONUNBUFFERED: "1"
+          PYTHONUNBUFFERED: "1"   # logs appear live instead of at the end
         run: python main.py ${{ steps.mode.outputs.mode }} ${{ steps.mode.outputs.hour }}
 
       - name: Oxirgi kursni saqlash (send rejimida)
