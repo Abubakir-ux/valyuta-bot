@@ -129,6 +129,48 @@ def get_all_bank_rates():
 
     buy_html, sell_html = html[:split_idx], html[split_idx:]
 
+    def extract_bank_value(a_tag, full_html):
+        """Bitta bank narxini TOPISH UCHUN 3 TA USUL bilan urinadi.
+        1-usul ishlamasa 2-usulni, u ham ishlamasa 3-usulni sinaydi.
+        Uchalasi ham muvaffaqiyatsiz bo'lsagina None qaytaradi (bank o'tkazib yuboriladi)."""
+
+        # 1-urinish: elementdan keyingi eng yaqin "so'm" so'zini qidirish
+        try:
+            price_node = a_tag.find_next(string=re.compile(r"so'm"))
+            val = tozalash(price_node)
+            if val > 0:
+                return val
+        except Exception:
+            pass
+
+        # 2-urinish: ota (parent) elementning ichidagi butun matndan raqam qidirish
+        try:
+            parent = a_tag.find_parent()
+            if parent:
+                matn = parent.get_text(" ", strip=True)
+                m = re.search(r"([\d\s]{3,})\s*so'm", matn)
+                if m:
+                    val = tozalash(m.group(1))
+                    if val > 0:
+                        return val
+        except Exception:
+            pass
+
+        # 3-urinish: xom HTML ichida link joylashgan joydan keyingi matndan qidirish
+        try:
+            idx = full_html.find(str(a_tag))
+            if idx != -1:
+                keyingi_qism = full_html[idx: idx + 400]
+                m = re.search(r"([\d\s]{3,})\s*so'm", keyingi_qism)
+                if m:
+                    val = tozalash(m.group(1))
+                    if val > 0:
+                        return val
+        except Exception:
+            pass
+
+        return None
+
     def extract(piece_html):
         piece_soup = BeautifulSoup(piece_html, "html.parser")
         out = {}
@@ -136,16 +178,16 @@ def get_all_bank_rates():
             name = a.get_text(strip=True)
             if not name:
                 continue
-            try:
-                price_node = a.find_next(string=re.compile(r"so'm"))
-                val = tozalash(price_node)
-                href = a.get("href", "")
-                full_url = "https://bank.uz" + href if href.startswith("/") else href
-                if val > 0 and name not in out:
-                    out[name] = {"val": val, "url": full_url}
-            except Exception as e:
-                print(f"⚠️ '{name}' o'tkazib yuborildi: {e}")
+
+            val = extract_bank_value(a, piece_html)
+            if val is None:
+                print(f"⚠️ '{name}': 3 usul bilan ham narx topilmadi, o'tkazib yuborildi.")
                 continue
+
+            href = a.get("href", "")
+            full_url = "https://bank.uz" + href if href.startswith("/") else href
+            if name not in out:
+                out[name] = {"val": val, "url": full_url}
         return out
 
     buy = extract(buy_html)
