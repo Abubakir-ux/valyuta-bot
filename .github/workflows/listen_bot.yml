@@ -1,1 +1,41 @@
+name: Botni tinglash
 
+on:
+  schedule:
+    - cron: "*/3 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  listen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Repo'ni olish
+        uses: actions/checkout@v4
+
+      - name: Python o'rnatish
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Kutubxonani o'rnatish
+        run: pip install requests
+
+      - name: Tinglash
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          OWNER_ID: ${{ secrets.OWNER_ID }}
+          PYTHONUNBUFFERED: "1"
+        run: python main.py listen
+
+      - name: offset.txt'ni saqlash
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add offset.txt
+          git commit -m "offset yangilandi" || echo "o'zgarish yo'q"
+          git pull --rebase
+          git push
