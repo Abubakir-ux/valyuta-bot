@@ -1,1 +1,63 @@
+name: Kurslarni yuborish
 
+on:
+  schedule:
+    - cron: "55 3 * * *"
+    - cron: "55 7 * * *"
+    - cron: "55 13 * * *"
+  workflow_dispatch:
+    inputs:
+      hour:
+        description: "Qaysi soat uchun test qilish (bo'sh qoldirsangiz darhol yuboradi)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Repo'ni olish
+        uses: actions/checkout@v4
+
+      - name: Python o'rnatish
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Kutubxonalarni o'rnatish
+        run: pip install -r requirements.txt
+
+      - name: Chrome o'rnatish (Selenium uchun)
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Aniq soatni belgilash
+        id: hour
+        run: |
+          case "${{ github.event.schedule }}" in
+            "55 3 * * *")  echo "h=9"  >> "$GITHUB_OUTPUT" ;;
+            "55 7 * * *")  echo "h=13" >> "$GITHUB_OUTPUT" ;;
+            "55 13 * * *") echo "h=19" >> "$GITHUB_OUTPUT" ;;
+            *) echo "h=${{ github.event.inputs.hour }}" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Kurslarni yuborish
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          OWNER_ID: ${{ secrets.OWNER_ID }}
+          TZ: Asia/Tashkent
+          PYTHONUNBUFFERED: "1"
+        run: python main.py send ${{ steps.hour.outputs.h }}
+
+      - name: Oxirgi kursni saqlash
+        run: |
+          git config user.name "bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add last_rates.json
+          git commit -m "kurs yangilandi" || echo "o'zgarish yo'q"
+          git pull --rebase
+          git push
