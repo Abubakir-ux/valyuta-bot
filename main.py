@@ -5,14 +5,13 @@ import json
 import time
 import datetime
 import requests
-from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
+
+# ============================================================
+# bs4/Selenium — FAQAT "send" rejimida kerak, "listen" rejimida kerak emas.
+# Shuning uchun bu yerda emas, pastda shu kutubxonalar
+# ishlatiladigan funksiyalar ichida import qilinadi — shunda
+# "listen" rejimi ularni o'rnatish shart bo'lmasdan ham ishlay oladi.
+# ============================================================
 
 # ============================================================
 # Vaqtni O'zbekistonga moslash
@@ -41,22 +40,26 @@ OFFSET_FILE = "offset.txt"
 
 def wait_until_exact(hour, minute=0):
     """Aniq HH:MM:00 (Toshkent vaqti) gacha kutadi.
-    GitHub Actions cron'ni bir necha daqiqa oldinroq ishga tushirsak,
-    runner tayyor turadi va shu funksiya orqali aniq soniyagacha kutadi —
-    shunda GitHub'ning cron kechikishi (odatda 1-10 daqiqa) muammo bo'lmaydi."""
+    GitHub Actions cron'ni bir necha daqiqa (ba'zan undan ko'proq ham)
+    oldinroq ishga tushirsak, runner tayyor turadi va shu funksiya orqali
+    aniq soniyagacha kutadi.
+
+    MUHIM: bu funksiya HECH QACHON "ertangi kunni" kutmaydi. Agar GitHub
+    ishni juda kech boshlagan bo'lsa (hatto necha soat kech bo'lsa ham),
+    shunchaki DARHOL yuboradi — chunki ertangi kun uchun alohida cron
+    allaqachon bor, shu yerda ikki marta kutish shart emas va navbatdagi
+    ishni behuda soatlab "uxlatib qo'yish" xato edi."""
     now = datetime.datetime.now()
     target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
-    if target < now:
+
+    if target <= now:
         kechikish = (now - target).total_seconds()
-        if kechikish <= 45 * 60:
-            # GitHub ishni kechiktirib boshladi: ertangi kunni kutmaymiz, darhol yuboramiz
-            print(f"⚠️ Ish {int(kechikish)} soniya kechikib boshlandi — kutmasdan darhol yuboriladi.")
-            return
-        target += datetime.timedelta(days=1)
+        print(f"⚠️ Ish {int(kechikish)} soniya kechikib boshlandi — kutmasdan darhol yuboriladi.")
+        return
+
     wait_seconds = (target - now).total_seconds()
-    if wait_seconds > 0:
-        print(f"⏳ Aniq {hour:02d}:{minute:02d}:00 gacha {int(wait_seconds)} soniya kutilmoqda...")
-        time.sleep(wait_seconds)
+    print(f"⏳ Aniq {hour:02d}:{minute:02d}:00 gacha {int(wait_seconds)} soniya kutilmoqda...")
+    time.sleep(wait_seconds)
     print(f"🚀 Vaqt keldi: {datetime.datetime.now().strftime('%H:%M:%S')} — yuborishni boshlaymiz.")
 
 
@@ -85,6 +88,8 @@ def tg_send(chat_id, text, parse_mode="HTML"):
 # chiqsa, faqat o'sha bank tashlab ketiladi, qolganlari yuboriladi.
 # ============================================================
 def get_all_bank_rates():
+    from bs4 import BeautifulSoup  # faqat shu funksiya chaqirilganda kerak
+
     url = "https://bank.uz/uz/currency"
 
     # tarmoq vaqtincha kechiksa, 3 martagacha qayta urinib ko'ramiz
@@ -224,6 +229,14 @@ GOLD_XPATHS = [
 
 
 def get_gold_prices(driver_path):
+    # faqat shu funksiya chaqirilganda kerak (send rejimida)
+    from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+
     options = Options()
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
@@ -338,6 +351,7 @@ def run_send(target_hour=None):
         return
 
     print("🥇 Oltin narxi olinmoqda...")
+    from webdriver_manager.chrome import ChromeDriverManager  # faqat shu yerda kerak
     path = ChromeDriverManager().install()
     gold_values = get_gold_prices(path)
     if not gold_values:
