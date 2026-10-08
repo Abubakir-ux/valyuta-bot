@@ -38,29 +38,31 @@ HEADERS = {
 OFFSET_FILE = "offset.txt"
 
 
-def wait_until_exact(hour, minute=0):
-    """Aniq HH:MM:00 (Toshkent vaqti) gacha kutadi.
-    GitHub Actions cron'ni bir necha daqiqa (ba'zan undan ko'proq ham)
-    oldinroq ishga tushirsak, runner tayyor turadi va shu funksiya orqali
-    aniq soniyagacha kutadi.
+def wait_until_exact(hour, minute=0, max_late_minutes=10):
+    """Aniq HH:MM:00 (Toshkent vaqti) gacha kutadi va True qaytaradi.
+    GitHub ishni oldinroq boshlasa, aniq soniyagacha kutib turadi.
 
-    MUHIM: bu funksiya HECH QACHON "ertangi kunni" kutmaydi. Agar GitHub
-    ishni juda kech boshlagan bo'lsa (hatto necha soat kech bo'lsa ham),
-    shunchaki DARHOL yuboradi — chunki ertangi kun uchun alohida cron
-    allaqachon bor, shu yerda ikki marta kutish shart emas va navbatdagi
-    ishni behuda soatlab "uxlatib qo'yish" xato edi."""
+    Agar GitHub ishni kech boshlagan bo'lsa:
+      - max_late_minutes (10 daqiqa) gacha kechiksa -> darhol yuboradi (True)
+      - undan ko'p kechiksa -> False qaytaradi, post BOSHQA SOATDA tashlanmasligi uchun
+        o'sha post o'tkazib yuboriladi."""
     now = datetime.datetime.now()
     target = now.replace(hour=hour, minute=minute, second=0, microsecond=0)
 
     if target <= now:
         kechikish = (now - target).total_seconds()
-        print(f"⚠️ Ish {int(kechikish)} soniya kechikib boshlandi — kutmasdan darhol yuboriladi.")
-        return
+        if kechikish > max_late_minutes * 60:
+            print(f"⛔ Ish {int(kechikish // 60)} daqiqa kechikib boshlandi (limit {max_late_minutes} daqiqa) — "
+                  f"post boshqa soatda tashlanmasligi uchun o'tkazib yuborildi.")
+            return False
+        print(f"⚠️ Ish {int(kechikish)} soniya kechikib boshlandi — darhol yuboriladi.")
+        return True
 
     wait_seconds = (target - now).total_seconds()
     print(f"⏳ Aniq {hour:02d}:{minute:02d}:00 gacha {int(wait_seconds)} soniya kutilmoqda...")
     time.sleep(wait_seconds)
     print(f"🚀 Vaqt keldi: {datetime.datetime.now().strftime('%H:%M:%S')} — yuborishni boshlaymiz.")
+    return True
 
 
 def tozalash(matn):
@@ -289,9 +291,75 @@ def load_last_rates():
 
 
 def save_last_rates(best_buy, best_sell):
+    """Oxirgi YUBORILGAN kursni va bugun nechta post yuborilganini saqlaydi."""
+    bugun = time.strftime('%Y-%m-%d')
+    eski = load_last_rates()
+    posts_today = eski.get("posts_today", 0) + 1 if eski.get("posts_date") == bugun else 1
     with open(LAST_RATES_FILE, "w") as f:
         json.dump({"best_buy": best_buy, "best_sell": best_sell,
-                   "time": time.strftime('%d.%m.%Y %H:%M')}, f)
+                   "time": time.strftime('%d.%m.%Y %H:%M'),
+                   "posts_date": bugun, "posts_today": posts_today}, f)
+
+
+# ============================================================
+# KUZATUV: kurslarni tarixga yozish (rates_log.csv) va
+# faqat kurs o'zgarganda post tashlash
+# ============================================================
+RATES_LOG_FILE = "rates_log.csv"
+WATCH_MIN_CHANGE = 20      # eng yaxshi xarid/sotuv kamida shuncha so'mga o'zgarsa post tashlanadi
+MAX_POSTS_PER_DAY = 5      # kuniga eng ko'pi bilan shuncha post (kanal to'lib ketmasligi uchun)
+
+
+def append_rates_log(banks):
+    """Har bir bankning kursini vaqti bilan rates_log.csv ga qo'shib boradi.
+    Keyin shu fayldan kurslar qaysi soatda o'zgarishini tahlil qilish mumkin."""
+    yangi_fayl = not os.path.exists(RATES_LOG_FILE)
+    vaqt = time.strftime('%Y-%m-%d %H:%M')
+    with open(RATES_LOG_FILE, "a", encoding="utf-8") as f:
+        if yangi_fayl:
+            f.write("time,bank,buy,sell\n")
+        for r in banks:
+            nom = r["name"].replace(",", " ")
+            f.write(f"{vaqt},{nom},{r['buy_num']},{r['sell_num']}\n")
+
+
+def run_watch(post=True):
+    """python main.py log    -> faqat tarixga yozadi, kanalga hech narsa yubormaydi
+    python main.py watch  -> tarixga yozadi VA kurs o'zgargan bo'lsagina kanalga post tashlaydi"""
+    print("🔎 Kurslar tekshirilmoqda...")
+    try:
+        banks, skipped = get_all_bank_rates()
+    except Exception as e:
+        print(f"❌ bank.uz'dan ma'lumot olib bo'lmadi: {e}")
+        return
+
+    if len(banks) < 5:
+        print(f"❌ Faqat {len(banks)} ta bank topildi, tarixga yozilmadi.")
+        return
+
+    append_rates_log(banks)
+    print(f"📝 {len(banks)} ta bank kursi {RATES_LOG_FILE} ga yozildi.")
+
+    if not post:
+        print("ℹ️ Faqat yozish rejimi: kanalga post yuborilmaydi.")
+        return
+
+    ey_x_val = max(r["buy_num"] for r in banks)
+    ey_s_val = min(r["sell_num"] for r in banks)
+    oldingi = load_last_rates()
+
+    if oldingi.get("best_buy") is not None:
+        farq = max(abs(ey_x_val - oldingi["best_buy"]), abs(ey_s_val - oldingi["best_sell"]))
+        if farq < WATCH_MIN_CHANGE:
+            print(f"➖ Kurs deyarli o'zgarmadi (farq {farq} so'm < {WATCH_MIN_CHANGE}), post tashlanmaydi.")
+            return
+
+    if oldingi.get("posts_date") == time.strftime('%Y-%m-%d') and oldingi.get("posts_today", 0) >= MAX_POSTS_PER_DAY:
+        print(f"⛔ Bugun {MAX_POSTS_PER_DAY} ta post yuborilgan, limit tugadi.")
+        return
+
+    print("📈 Kurs o'zgargan — post tashlanmoqda...")
+    run_send()
 
 
 def farq_belgisi(yangi, eski):
@@ -321,7 +389,7 @@ def get_cbu_usd_rate():
 
 # ============================================================
 # REJIM 1: "send" — kurslarni kanalga yuborish
-# (GitHub Actions'da 09:00, 13:00, 19:00 da cron orqali chaqiriladi)
+# (GitHub Actions'da 05:00, 13:00, 18:00 da cron orqali chaqiriladi)
 # ============================================================
 def run_send(target_hour=None):
     if not BOT_TOKEN or not CHAT_ID:
@@ -331,7 +399,9 @@ def run_send(target_hour=None):
     # agar aniq soat berilgan bo'lsa (masalan 9, 13, 19) —
     # shu soatning aniq 00-soniyasigacha kutib turamiz, keyin yuboramiz.
     if target_hour is not None:
-        wait_until_exact(int(target_hour))
+        if not wait_until_exact(int(target_hour)):
+            notify_owner(f"⚠️ {int(target_hour):02d}:00 dagi post o'tkazib yuborildi: GitHub ishni 10 daqiqadan ko'p kechiktirdi.")
+            return
 
     print("💱 bank.uz orqali barcha banklar kursi olinmoqda...")
     try:
@@ -431,76 +501,4 @@ def run_listen():
 
     resp = requests.get(
         f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates",
-        params={"offset": offset, "timeout": 0, "allowed_updates": '["message","my_chat_member"]'},
-        timeout=20,
-    )
-    data = resp.json()
-    if not data.get("ok"):
-        print(f"❌ getUpdates xatosi: {data}")
-        return
-
-    updates = data.get("result", [])
-    print(f"📥 {len(updates)} ta yangi hodisa.")
-
-    for u in updates:
-        offset = u["update_id"] + 1
-
-        # /start bosilganda — FAQAT egasi (OWNER_ID) uchun javob beradi
-        msg = u.get("message")
-        if msg and msg.get("text", "").startswith("/start"):
-            user_id = str(msg["from"]["id"])
-            chat_id = msg["chat"]["id"]
-
-            if OWNER_ID and user_id != str(OWNER_ID):
-                print(f"⛔ Begona foydalanuvchi /start bosdi (id={user_id}) — e'tiborsiz qoldirildi.")
-                continue
-
-            matn = (
-                "👋 Salom!\n\n"
-                "Men O'zbekiston banklaridagi dollar kurslari va quyma oltin "
-                "narxlarini kuzataman.\n\n"
-                "📌 Meni kanalingizga <b>admin</b> qilib qo'shing — har kuni soat "
-                "09:00, 13:00 va 19:00 da yangilangan narxlarni avtomatik yuborib turaman."
-            )
-            tg_send(chat_id, matn)
-            print(f"✅ /start javobi yuborildi: {chat_id}")
-
-        # kanalga admin qilib qo'shilganda — FAQAT egasi qo'shgan bo'lsa xabar beradi
-        cm = u.get("my_chat_member")
-        if cm:
-            chat = cm["chat"]
-            new_status = cm["new_chat_member"]["status"]
-            actor_id = str(cm["from"]["id"])
-
-            if OWNER_ID and actor_id != str(OWNER_ID):
-                print(f"⛔ Begona odam botni admin qildi (id={actor_id}) — e'tiborsiz qoldirildi.")
-                continue
-
-            if new_status == "administrator":
-                tg_send(
-                    chat["id"],
-                    "✅ Admin qilib qo'shganingiz uchun rahmat!\n"
-                    "Endi har kuni 09:00, 13:00, 19:00 da kurslarni shu yerga yuboraman.",
-                )
-                print(f"✅ Admin xabari yuborildi: {chat['id']} ({chat.get('title')})")
-
-    with open(OFFSET_FILE, "w") as f:
-        f.write(str(offset))
-
-
-# ============================================================
-# KIRISH NUQTASI
-# python main.py send    -> kurslarni yuborish
-# python main.py listen  -> /start va admin hodisalarini tinglash
-# ============================================================
-if __name__ == "__main__":
-    mode = sys.argv[1] if len(sys.argv) > 1 else "send"
-    if mode == "send":
-        # python main.py send        -> darhol yuboradi (qo'lda test uchun)
-        # python main.py send 9      -> aniq 09:00:00 gacha kutib, keyin yuboradi
-        hour_arg = sys.argv[2] if len(sys.argv) > 2 else None
-        run_send(target_hour=hour_arg)
-    elif mode == "listen":
-        run_listen()
-    else:
-        print(f"❌ Noma'lum rejim: {mode}. 'send' yoki 'listen' dan birini bering.")
+        params={"offset": offset, "timeout": 0, "allowed_u
