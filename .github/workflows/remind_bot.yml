@@ -1,0 +1,47 @@
+name: Ko'cha kursi eslatmasi
+
+on:
+  schedule:
+    - cron: "30 23 * * *"   # 04:30 Toshkent -> 05:00 post uchun
+    - cron: "30 7 * * *"    # 12:30 Toshkent -> 13:00 post uchun
+    - cron: "30 12 * * *"   # 17:30 Toshkent -> 18:00 post uchun
+  workflow_dispatch:
+    inputs:
+      hour:
+        description: "Qaysi post uchun (5, 13 yoki 18). Bo'sh qoldirsangiz darhol yuboradi"
+        required: false
+        default: ""
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Repo'ni olish
+        uses: actions/checkout@v4
+
+      - name: Python o'rnatish
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Kutubxonani o'rnatish
+        run: pip install requests
+
+      - name: Soatni belgilash
+        id: hour
+        run: |
+          case "${{ github.event.schedule }}" in
+            "30 23 * * *") echo "h=5"  >> "$GITHUB_OUTPUT" ;;
+            "30 7 * * *")  echo "h=13" >> "$GITHUB_OUTPUT" ;;
+            "30 12 * * *") echo "h=18" >> "$GITHUB_OUTPUT" ;;
+            *) echo "h=${{ github.event.inputs.hour }}" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: Eslatma yuborish
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          OWNER_ID: ${{ secrets.OWNER_ID }}
+          TZ: Asia/Tashkent
+          PYTHONUNBUFFERED: "1"
+        run: python main.py remind ${{ steps.hour.outputs.h }}
