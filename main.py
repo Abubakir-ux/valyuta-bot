@@ -89,26 +89,104 @@ def tg_send(chat_id, text, parse_mode="HTML"):
 # Har bir bank ALOHIDA qayta ishlanadi: birontasi noto'g'ri
 # chiqsa, faqat o'sha bank tashlab ketiladi, qolganlari yuboriladi.
 # ============================================================
+BANKUZ_URL = "https://bank.uz/uz/currency"
+
+BROWSER_HEADERS = {
+    "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                   "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "uz,ru;q=0.9,en;q=0.8",
+    "Upgrade-Insecure-Requests": "1",
+    "Referer": "https://www.google.com/",
+}
+
+
+def _sahifa_togri(html):
+    """Yuklangan matn haqiqiy bank.uz kurslar sahifasimi (bo'sh/bloklash sahifasi emasmi)."""
+    return bool(html) and len(html) > 20000 and "Sotish" in html
+
+
+def _fetch_requests():
+    last = None
+    for timeout in (15, 25):
+        try:
+            r = requests.get(BANKUZ_URL, headers=BROWSER_HEADERS, timeout=timeout)
+            r.raise_for_status()
+            if _sahifa_togri(r.text):
+                return r.text
+            last = f"sahifa to'liq emas (uzunligi {len(r.text)})"
+        except requests.exceptions.RequestException as e:
+            last = str(e)
+        time.sleep(3)
+    raise RuntimeError(last)
+
+
+def _fetch_chrome():
+    """Haqiqiy brauzer (headless Chrome) orqali ochish — oddiy so'rovni
+    o'tkazmaydigan holatlarda ba'zan ishlaydi."""
+    from selenium import webdriver
+    from selenium.webdriver.chrome.service import Service
+    from selenium.webdriver.chrome.options import Options
+    from webdriver_manager.chrome import ChromeDriverManager
+
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument(f"user-agent={BROWSER_HEADERS['User-Agent']}")
+    options.page_load_strategy = "eager"
+
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    driver.set_page_load_timeout(60)
+    try:
+        driver.get(BANKUZ_URL)
+        time.sleep(3)
+        html = driver.page_source
+    finally:
+        driver.quit()
+    if not _sahifa_togri(html):
+        raise RuntimeError(f"sahifa to'liq emas (uzunligi {len(html or '')})")
+    return html
+
+
+def _fetch_proxy():
+    """Uchinchi urinish: ochiq proksi orqali (GitHub serveri bank.uz ga to'g'ridan-to'g'ri
+    yetib bormasa). Bu usul tashqi xizmatga bog'liq, shuning uchun oxirgi chora."""
+    from urllib.parse import quote
+    r = requests.get("https://api.allorigins.win/raw?url=" + quote(BANKUZ_URL, safe=""),
+                     headers=BROWSER_HEADERS, timeout=45)
+    r.raise_for_status()
+    if not _sahifa_togri(r.text):
+        raise RuntimeError(f"sahifa to'liq emas (uzunligi {len(r.text)})")
+    return r.text
+
+
+def fetch_bankuz_html():
+    """bank.uz sahifasini 3 xil yo'l bilan olishga urinadi. Qaysi biri birinchi
+    ishlasa, o'shani qaytaradi: (html, usul_nomi). Hammasi muvaffaqiyatsiz bo'lsa,
+    har bir usulning xatosini ko'rsatib RuntimeError chiqaradi."""
+    xatolar = []
+    for nom, func in (("oddiy so'rov", _fetch_requests),
+                      ("Chrome brauzer", _fetch_chrome),
+                      ("proksi", _fetch_proxy)):
+        t0 = time.time()
+        try:
+            html = func()
+            return html, nom
+        except Exception as e:
+            sabab = f"{nom}: {str(e)[:150]}"
+            print(f"⚠️ {sabab} ({int(time.time() - t0)} soniya)")
+            xatolar.append(sabab)
+    raise RuntimeError("bank.uz ga hech qaysi usul bilan yetib bo'lmadi -> " + " | ".join(xatolar))
+
+
 def get_all_bank_rates():
     from bs4 import BeautifulSoup  # faqat shu funksiya chaqirilganda kerak
 
-    url = "https://bank.uz/uz/currency"
-
-    # tarmoq vaqtincha kechiksa, 3 martagacha qayta urinib ko'ramiz
-    resp = None
-    for urinish in range(1, 4):
-        try:
-            resp = requests.get(url, headers=HEADERS, timeout=30)
-            resp.raise_for_status()
-            break
-        except requests.exceptions.RequestException as e:
-            print(f"⚠️ bank.uz'ga so'rov {urinish}-marta muvaffaqiyatsiz: {e}")
-            if urinish < 3:
-                time.sleep(5 * urinish)  # 5s, keyin 10s kutib qayta urinadi
-            else:
-                raise
-
-    soup = BeautifulSoup(resp.text, "html.parser")
+    html_text, usul = fetch_bankuz_html()
+    print(f"✅ bank.uz sahifasi '{usul}' usuli bilan olindi ({len(html_text)} belgi).")
+    soup = BeautifulSoup(html_text, "html.parser")
 
     container = soup.find(id="best_USD") or soup
     html = str(container)
@@ -128,7 +206,7 @@ def get_all_bank_rates():
         if sotish_tag is None:
             raise ValueError(
                 f"bank.uz sahifa tuzilishi o'zgargan bo'lishi mumkin "
-                f"(javob uzunligi={len(resp.text)}, status={resp.status_code})"
+                f"(javob uzunligi={len(html_text)}, usul={usul})"
             )
         split_idx = html.find(str(sotish_tag))
     else:
@@ -220,52 +298,78 @@ def get_all_bank_rates():
 # ============================================================
 # 2) OLTIN NARXI — cbu.uz (Markaziy bank)
 # ============================================================
-GOLD_URL = "https://cbu.uz/oz/banknotes-coins/gold-bars/prices/"
-GOLD_XPATHS = [
-    "/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[3]/td[2]/p",
-    "/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[4]/td[2]/p",
-    "/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[5]/td[2]/p",
-    "/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[6]/td[2]/p",
-    "/html/body/div[2]/section[1]/div/div/div[1]/table/tbody/tr[7]/td[2]/p",
-]
+GOLD_URL = "https://cbu.uz/uz/banknotes-coins/gold-bars/prices/"
+GOLD_WEIGHTS = [5, 10, 20, 50, 100]
 
 
-def get_gold_prices(driver_path):
-    # faqat shu funksiya chaqirilganda kerak (send rejimida)
-    from selenium import webdriver
-    from selenium.webdriver.chrome.service import Service
-    from selenium.webdriver.chrome.options import Options
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.support.ui import WebDriverWait
-    from selenium.webdriver.support import expected_conditions as EC
+def parse_gold_text(text):
+    """Sahifa matnidan quyma oltinning SOTISH narxlarini oladi (5, 10, 20, 50, 100 gramm).
+    XPath ishlatilmaydi: jadvalga yangi ustun/qator qo'shilsa ham buzilmaydi.
+    Qaytaradi: ["9028000", "18057000", ...] yoki None."""
+    text = text.replace("\u00a0", " ")
+    pattern = re.compile(r"(\d{1,3})\s*(?:gramm|gram|грамм)\b[^\d]{0,20}(\d[\d ]{4,}\d)", re.I)
+    topilgan = {}
+    for m in pattern.finditer(text):
+        og = int(m.group(1))
+        narx = tozalash(m.group(2))
+        if og in GOLD_WEIGHTS and og not in topilgan and narx > 100000:
+            topilgan[og] = narx   # har bir og'irlik uchun birinchi raqam = sotish narxi
+    if all(w in topilgan for w in GOLD_WEIGHTS):
+        return [str(topilgan[w]) for w in GOLD_WEIGHTS]
+    return None
 
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--window-size=1920,1080")
-    options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
-    driver = webdriver.Chrome(service=Service(driver_path), options=options)
-    driver.set_page_load_timeout(80)
+def get_gold_prices(driver_path=None):
+    """1-usul: oddiy so'rov (tez). 2-usul: Chrome brauzer. Ikkalasida ham matn regex bilan o'qiladi."""
+    from bs4 import BeautifulSoup
+
+    # 1-usul: oddiy so'rov
     try:
-        driver.get(GOLD_URL)
-        wait = WebDriverWait(driver, 40)
-        values = []
-        for xp in GOLD_XPATHS:
-            val = wait.until(EC.presence_of_element_located((By.XPATH, xp))).text
-            if val.strip():
-                values.append(val.strip())
-        return values if len(values) >= 5 else None
+        r = requests.get(GOLD_URL, headers=BROWSER_HEADERS, timeout=25)
+        r.raise_for_status()
+        natija = parse_gold_text(BeautifulSoup(r.text, "html.parser").get_text(" "))
+        if natija:
+            print("🥇 Oltin narxi oddiy so'rov bilan olindi.")
+            return natija
+        print("⚠️ Oltin: oddiy so'rovda jadval topilmadi, Chrome bilan urinib ko'raman.")
     except Exception as e:
-        print(f"⚠️ Oltin narxini olishda xatolik: {e}")
-        return None
-    finally:
-        driver.quit()
+        print(f"⚠️ Oltin: oddiy so'rov xatosi: {str(e)[:150]}")
+
+    # 2-usul: Chrome brauzer
+    try:
+        from selenium import webdriver
+        from selenium.webdriver.chrome.service import Service
+        from selenium.webdriver.chrome.options import Options
+        from selenium.webdriver.common.by import By
+        from webdriver_manager.chrome import ChromeDriverManager
+
+        options = Options()
+        options.add_argument("--headless=new")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--window-size=1920,1080")
+        options.add_argument(f"user-agent={BROWSER_HEADERS['User-Agent']}")
+        options.page_load_strategy = "eager"
+
+        path = driver_path or ChromeDriverManager().install()
+        driver = webdriver.Chrome(service=Service(path), options=options)
+        driver.set_page_load_timeout(80)
+        try:
+            driver.get(GOLD_URL)
+            for _ in range(8):  # jadval yuklanishini 16 soniyagacha kutamiz
+                time.sleep(2)
+                natija = parse_gold_text(driver.find_element(By.TAG_NAME, "body").text)
+                if natija:
+                    print("🥇 Oltin narxi Chrome bilan olindi.")
+                    return natija
+        finally:
+            driver.quit()
+        print("⚠️ Oltin: Chrome bilan ham jadval topilmadi.")
+    except Exception as e:
+        print(f"⚠️ Oltin: Chrome xatosi: {str(e)[:150]}")
+    return None
 
 
-# ============================================================
-# YORDAMCHI FUNKSIYALAR: egasiga xabar, oldingi kursni eslab qolish, MB kursi
 # ============================================================
 LAST_RATES_FILE = "last_rates.json"
 
@@ -388,6 +492,89 @@ def get_cbu_usd_rate():
 
 
 # ============================================================
+# KO'CHA KURSI: egasi botga "/kocha 12000" deb yozadi, bot saqlab,
+# keyingi postlarning eng pastiga 1$ va 100$ qiymati bilan qo'shadi.
+# (24 soatdan eski bo'lsa postga qo'shilmaydi — eskirgan narx chiqmasligi uchun)
+# ============================================================
+STREET_FILE = "street_rate.json"
+STREET_MAX_AGE_HOURS = 24
+
+
+def parse_street_command(text):
+    """'/kocha 12000' yoki '/kocha 11950 12050' -> (xarid, sotuv). Noto'g'ri bo'lsa None."""
+    qism = text.split(None, 1)
+    if len(qism) < 2:
+        return None
+    sonlar = [tozalash(x) for x in re.findall(r"\d[\d.,]*", qism[1])]
+    sonlar = [x for x in sonlar if x]
+    if len(sonlar) == 1:
+        buy = sell = sonlar[0]
+    elif len(sonlar) == 2:
+        buy, sell = sonlar
+    else:
+        return None
+    if not (5000 <= buy <= 30000 and 5000 <= sell <= 30000):
+        return None
+    return buy, sell
+
+
+def save_street_rate(buy, sell):
+    with open(STREET_FILE, "w") as f:
+        json.dump({"buy": buy, "sell": sell, "ts": time.time(),
+                   "time": time.strftime('%d.%m %H:%M')}, f)
+
+
+def load_street_rate():
+    """Yangi (24 soatdan eskirmagan) ko'cha kursini qaytaradi, bo'lmasa None."""
+    try:
+        with open(STREET_FILE) as f:
+            d = json.load(f)
+        if time.time() - d["ts"] > STREET_MAX_AGE_HOURS * 3600:
+            print("ℹ️ Ko'cha kursi 24 soatdan eski — postga qo'shilmaydi.")
+            return None
+        return d
+    except (FileNotFoundError, ValueError, KeyError):
+        return None
+
+
+def format_street_block(d):
+    def fmt(n):
+        return f"{n:,}".replace(",", " ")
+    buy, sell = d["buy"], d["sell"]
+    if buy == sell:
+        satrlar = f"💵 1$ = {fmt(buy)} so'm\n💵 100$ = {fmt(buy * 100)} so'm\n"
+    else:
+        satrlar = (f"💵 1$: xarid {fmt(buy)} | sotuv {fmt(sell)}\n"
+                   f"💵 100$: xarid {fmt(buy * 100)} | sotuv {fmt(sell * 100)}\n")
+    return f"\n<b>🏪 Ko'cha kursi:</b>\n{satrlar}<i>(yangilandi: {d['time']})</i>\n"
+
+
+def apply_pending_street_commands():
+    """Post yuborishdan oldin: egasi yuborgan, hali 'listen' ishi o'qimagan /kocha
+    buyruqlari bo'lsa, ularni shu zahoti qo'llaydi (offset'ni siljitmaydi)."""
+    if not BOT_TOKEN or not OWNER_ID:
+        return
+    try:
+        try:
+            with open(OFFSET_FILE) as f:
+                offset = int(f.read().strip())
+        except (FileNotFoundError, ValueError):
+            offset = 0
+        r = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates",
+                         params={"offset": offset, "timeout": 0}, timeout=20)
+        for u in r.json().get("result", []):
+            msg = u.get("message")
+            if (msg and str(msg.get("from", {}).get("id")) == str(OWNER_ID)
+                    and msg.get("text", "").startswith("/kocha")):
+                rt = parse_street_command(msg["text"])
+                if rt:
+                    save_street_rate(*rt)
+                    print(f"🏪 Ko'cha kursi Telegramdan yangilandi: {rt}")
+    except Exception as e:
+        print(f"⚠️ Ko'cha kursi buyruqlarini tekshirib bo'lmadi: {str(e)[:120]}")
+
+
+# ============================================================
 # REJIM 1: "send" — kurslarni kanalga yuborish
 # (GitHub Actions'da 05:00, 13:00, 18:00 da cron orqali chaqiriladi)
 # ============================================================
@@ -421,13 +608,12 @@ def run_send(target_hour=None):
         return
 
     print("🥇 Oltin narxi olinmoqda...")
-    from webdriver_manager.chrome import ChromeDriverManager  # faqat shu yerda kerak
-    path = ChromeDriverManager().install()
-    gold_values = get_gold_prices(path)
+    gold_values = get_gold_prices()
     if not gold_values:
         notify_owner("⚠️ Oltin narxi olinmadi (cbu.uz XPath o'zgargan bo'lishi mumkin). Xabar oltin narxisiz yuborildi.")
 
     mb_kursi = get_cbu_usd_rate()
+    apply_pending_street_commands()
 
     ey_x_val = max(r["buy_num"] for r in banks)
     ey_s_val = min(r["sell_num"] for r in banks)
@@ -468,6 +654,10 @@ def run_send(target_hour=None):
             formatlangan = f"{son:,}".replace(",", " ") if son else xom_qiymat
             xabar += f"🟡 {gram_nomi}: {formatlangan} so'm\n"
 
+    kocha = load_street_rate()
+    if kocha:
+        xabar += format_street_block(kocha)
+
     if skipped:
         xabar += f"\n<i>⚠️ Ushbu banklar o'tkazib yuborildi: {', '.join(skipped)}</i>\n"
 
@@ -482,6 +672,48 @@ def run_send(target_hour=None):
     # faqat muvaffaqiyatli yuborilgandan keyin keyingi safar solishtirish uchun eslab qolamiz
     save_last_rates(ey_x_val, ey_s_val)
     print(f"✅ Yuborildi: {len(banks)} ta bank kursi. O'tkazib yuborilganlar: {len(skipped)} ta.")
+
+
+# ============================================================
+# REJIM 3: "remind" — post oldidan egasiga ko'cha kursini yangilashni eslatadi
+# (GitHub Actions'da postdan 30 daqiqa oldin: 04:30, 12:30, 17:30)
+# ============================================================
+def run_remind(target_hour=None):
+    if not BOT_TOKEN or not OWNER_ID:
+        print("❌ BOT_TOKEN yoki OWNER_ID topilmadi.")
+        return
+
+    now = datetime.datetime.now()
+    if target_hour is not None:
+        target = now.replace(hour=int(target_hour), minute=0, second=0, microsecond=0)
+        if now >= target:
+            print("⏭ Post vaqti allaqachon o'tib ketgan (GitHub kechikkan), eslatma yuborilmadi.")
+            return
+
+    try:
+        with open(STREET_FILE) as f:
+            d = json.load(f)
+        yosh_soat = (time.time() - d["ts"]) / 3600
+    except (FileNotFoundError, ValueError, KeyError):
+        d, yosh_soat = None, None
+
+    if d and yosh_soat < 3:
+        print(f"⏭ Ko'cha kursi {yosh_soat:.1f} soat oldin yangilangan, eslatma shart emas.")
+        return
+
+    soat = f"{int(target_hour):02d}:00 dagi postga" if target_hour is not None else "keyingi postga"
+    if d:
+        narx = f"{d['buy']:,}".replace(",", " ")
+        if d["buy"] != d["sell"]:
+            narx += " / " + f"{d['sell']:,}".replace(",", " ")
+        matn = (f"🏪 Ko'cha kursini yangilaysizmi?\n"
+                f"Oxirgisi: {narx} ({d['time']}, {int(yosh_soat)} soat oldin).\n"
+                f"{soat} yangi kurs kerak bo'lsa, yozing:\n/kocha 12000")
+    else:
+        matn = (f"🏪 Ko'cha kursi hali kiritilmagan.\n"
+                f"{soat} qo'shilishi uchun yozing:\n/kocha 12000")
+    tg_send(OWNER_ID, matn, parse_mode=None)
+    print("✅ Ko'cha kursi eslatmasi yuborildi.")
 
 
 # ============================================================
@@ -539,6 +771,23 @@ def run_listen():
             tg_send(chat_id, matn)
             print(f"✅ /start javobi yuborildi: {chat_id}")
 
+        # /kocha 12000 — FAQAT egasi uchun: ko'cha kursini saqlaydi
+        if msg and msg.get("text", "").startswith("/kocha"):
+            user_id = str(msg["from"]["id"])
+            chat_id = msg["chat"]["id"]
+            if not OWNER_ID or user_id != str(OWNER_ID):
+                print(f"⛔ Begona foydalanuvchi /kocha yubordi (id={user_id}) — e'tiborsiz qoldirildi.")
+            else:
+                rt = parse_street_command(msg["text"])
+                if rt:
+                    save_street_rate(*rt)
+                    tg_send(chat_id, f"✅ Ko'cha kursi saqlandi: xarid {rt[0]}, sotuv {rt[1]}. "
+                                     f"Keyingi postlarda 1$ va 100$ bilan chiqadi.", parse_mode=None)
+                    print(f"✅ Ko'cha kursi saqlandi: {rt}")
+                else:
+                    tg_send(chat_id, "❌ Format: /kocha 12000  yoki  /kocha 11950 12050 (xarid sotuv)",
+                            parse_mode=None)
+
         # kanalga admin qilib qo'shilganda — FAQAT egasi qo'shgan bo'lsa xabar beradi
         cm = u.get("my_chat_member")
         if cm:
@@ -576,9 +825,11 @@ if __name__ == "__main__":
         run_send(target_hour=hour_arg)
     elif mode == "listen":
         run_listen()
+    elif mode == "remind":
+        run_remind(sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] else None)
     elif mode == "log":
         run_watch(post=False)
     elif mode == "watch":
         run_watch(post=True)
     else:
-        print(f"❌ Noma'lum rejim: {mode}. 'send', 'listen', 'log' yoki 'watch' dan birini bering.")
+        print(f"❌ Noma'lum rejim: {mode}. 'send', 'listen', 'remind', 'log' yoki 'watch' dan birini bering.")
