@@ -2,13 +2,13 @@ name: Kurslarni yuborish
 
 on:
   schedule:
-    - cron: "55 23 * * *"
-    - cron: "55 7 * * *"
-    - cron: "55 12 * * *"
+    - cron: "55 23 * * *"   # 04:55 Toshkent -> 05:00:00 gacha kutib yuboradi
+    - cron: "55 7 * * *"    # 12:55 Toshkent -> 13:00:00 gacha kutib yuboradi
+    - cron: "55 12 * * *"   # 17:55 Toshkent -> 18:00:00 gacha kutib yuboradi
   workflow_dispatch:
     inputs:
       hour:
-        description: "Qaysi soat uchun test qilish (bo'sh qoldirsangiz darhol yuboradi)"
+        description: "Aniq soat (5, 13 yoki 18). Bo'sh qoldirsangiz darhol yuboradi"
         required: false
         default: ""
 
@@ -38,9 +38,9 @@ jobs:
         id: hour
         run: |
           case "${{ github.event.schedule }}" in
-            "55 3 * * *")  echo "h=9"  >> "$GITHUB_OUTPUT" ;;
+            "55 23 * * *") echo "h=5"  >> "$GITHUB_OUTPUT" ;;
             "55 7 * * *")  echo "h=13" >> "$GITHUB_OUTPUT" ;;
-            "55 13 * * *") echo "h=19" >> "$GITHUB_OUTPUT" ;;
+            "55 12 * * *") echo "h=18" >> "$GITHUB_OUTPUT" ;;
             *) echo "h=${{ github.event.inputs.hour }}" >> "$GITHUB_OUTPUT" ;;
           esac
 
@@ -53,11 +53,12 @@ jobs:
           PYTHONUNBUFFERED: "1"
         run: python main.py send ${{ steps.hour.outputs.h }}
 
-      - name: Oxirgi kursni saqlash
+      - name: Saqlash
         run: |
           git config user.name "bot"
           git config user.email "bot@users.noreply.github.com"
           git add last_rates.json
+          if [ -f street_rate.json ]; then git add street_rate.json; fi
           git commit -m "kurs yangilandi" || echo "o'zgarish yo'q"
           git pull --rebase
           git push
