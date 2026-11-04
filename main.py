@@ -29,6 +29,7 @@ if hasattr(time, 'tzset'):
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CHAT_ID = os.environ.get("CHAT_ID")
 OWNER_ID = os.environ.get("OWNER_ID")  # faqat shu Telegram ID'ga ega odamga bot javob beradi
+CALLME_USER = os.environ.get("CALLME_USER")  # Telegram @username (yoki +998...) — jiddiy xatoda shu orqali qo'ng'iroq qilinadi
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -374,16 +375,37 @@ def get_gold_prices(driver_path=None):
 LAST_RATES_FILE = "last_rates.json"
 
 
-def notify_owner(text):
-    """Xatolik bo'lsa egasiga (OWNER_ID) shaxsiy xabar yuboradi.
-    Egasi botga kamida bir marta /start bosgan bo'lishi kerak."""
-    if not BOT_TOKEN or not OWNER_ID:
-        print("ℹ️ OWNER_ID yo'q, egasiga xabar yuborilmadi.")
+def call_owner(text="Внимание! Бот курсов валют не отправил пост. Проверьте Телеграм."):
+    """Egasiga TELEGRAM orqali ovozli qo'ng'iroq qiladi (CallMeBot bepul xizmati orqali).
+    Oddiy telefon (GSM) qo'ng'irog'i emas: qo'ng'iroq Telegram ilovasida jiringlaydi.
+    CALLME_USER berilmagan bo'lsa, hech narsa qilmaydi."""
+    if not CALLME_USER:
+        print("ℹ️ CALLME_USER yo'q, qo'ng'iroq qilinmadi.")
         return
     try:
-        tg_send(OWNER_ID, text, parse_mode=None)
+        r = requests.get(
+            "http://api.callmebot.com/start.php",
+            params={"user": CALLME_USER, "text": text, "lang": "ru-RU-Standard-A", "rpt": 2},
+            timeout=30,
+        )
+        print(f"📞 Qo'ng'iroq so'rovi yuborildi (status {r.status_code}).")
     except Exception as e:
-        print(f"⚠️ Egasiga xabar yuborib bo'lmadi: {e}")
+        print(f"⚠️ Qo'ng'iroq qilib bo'lmadi: {str(e)[:120]}")
+
+
+def notify_owner(text, call=False):
+    """Xatolik bo'lsa egasiga (OWNER_ID) shaxsiy xabar yuboradi.
+    call=True bo'lsa (faqat jiddiy xatolarda), qo'shimcha ravishda Telegram orqali qo'ng'iroq ham qiladi.
+    Egasi botga kamida bir marta /start bosgan bo'lishi kerak."""
+    if BOT_TOKEN and OWNER_ID:
+        try:
+            tg_send(OWNER_ID, text, parse_mode=None)
+        except Exception as e:
+            print(f"⚠️ Egasiga xabar yuborib bo'lmadi: {e}")
+    else:
+        print("ℹ️ OWNER_ID yo'q, egasiga xabar yuborilmadi.")
+    if call:
+        call_owner()
 
 
 def load_last_rates():
@@ -587,7 +609,7 @@ def run_send(target_hour=None):
     # shu soatning aniq 00-soniyasigacha kutib turamiz, keyin yuboramiz.
     if target_hour is not None:
         if not wait_until_exact(int(target_hour)):
-            notify_owner(f"⚠️ {int(target_hour):02d}:00 dagi post o'tkazib yuborildi: GitHub ishni 10 daqiqadan ko'p kechiktirdi.")
+            notify_owner(f"⚠️ {int(target_hour):02d}:00 dagi post o'tkazib yuborildi: GitHub ishni 10 daqiqadan ko'p kechiktirdi.", call=True)
             return
 
     print("💱 bank.uz orqali barcha banklar kursi olinmoqda...")
@@ -595,7 +617,7 @@ def run_send(target_hour=None):
         banks, skipped = get_all_bank_rates()
     except Exception as e:
         print(f"❌ bank.uz'dan ma'lumot olishda xatolik: {e}")
-        notify_owner(f"⚠️ Kurs kanalga yuborilmadi.\nSabab: bank.uz'dan ma'lumot olib bo'lmadi.\n{e}")
+        notify_owner(f"⚠️ Kurs kanalga yuborilmadi.\nSabab: bank.uz'dan ma'lumot olib bo'lmadi.\n{e}", call=True)
         return
 
     print(f"✅ {len(banks)} ta bank topildi.")
@@ -604,7 +626,7 @@ def run_send(target_hour=None):
 
     if len(banks) < 5:
         print("❌ Juda kam bank topildi, ehtimol sayt tuzilishi o'zgargan. Xabar yuborilmadi.")
-        notify_owner(f"⚠️ Kurs kanalga yuborilmadi.\nSabab: faqat {len(banks)} ta bank topildi (sayt tuzilishi o'zgargan bo'lishi mumkin).")
+        notify_owner(f"⚠️ Kurs kanalga yuborilmadi.\nSabab: faqat {len(banks)} ta bank topildi (sayt tuzilishi o'zgargan bo'lishi mumkin).", call=True)
         return
 
     print("🥇 Oltin narxi olinmoqda...")
@@ -666,7 +688,7 @@ def run_send(target_hour=None):
     print("📤 Telegramga yuborilmoqda...")
     resp = tg_send(CHAT_ID, xabar)
     if resp.status_code != 200:
-        notify_owner(f"⚠️ Kurs kanalga yuborilmadi.\nSabab: Telegram xatosi: {resp.text}")
+        notify_owner(f"⚠️ Kurs kanalga yuborilmadi.\nSabab: Telegram xatosi: {resp.text}", call=True)
         return
 
     # faqat muvaffaqiyatli yuborilgandan keyin keyingi safar solishtirish uchun eslab qolamiz
