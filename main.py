@@ -576,7 +576,7 @@ def apply_pending_street_commands():
 
 # ============================================================
 # REJIM 1: "send" — kurslarni kanalga yuborish
-# (GitHub Actions'da 05:00, 13:00, 18:00 da cron orqali chaqiriladi)
+# (GitHub Actions'da 08:00, 13:00, 19:00 da cron orqali chaqiriladi)
 # ============================================================
 def run_send(target_hour=None):
     if not BOT_TOKEN or not CHAT_ID:
@@ -766,7 +766,7 @@ def run_listen():
                 "Men O'zbekiston banklaridagi dollar kurslari va quyma oltin "
                 "narxlarini kuzataman.\n\n"
                 "📌 Meni kanalingizga <b>admin</b> qilib qo'shing — har kuni soat "
-                "05:00, 13:00 va 18:00 da yangilangan narxlarni avtomatik yuborib turaman."
+                "08:00, 13:00 va 19:00 da yangilangan narxlarni avtomatik yuborib turaman."
             )
             tg_send(chat_id, matn)
             print(f"✅ /start javobi yuborildi: {chat_id}")
@@ -803,7 +803,7 @@ def run_listen():
                 tg_send(
                     chat["id"],
                     "✅ Admin qilib qo'shganingiz uchun rahmat!\n"
-                    "Endi har kuni 05:00, 13:00, 18:00 da kurslarni shu yerga yuboraman.",
+                    "Endi har kuni 08:00, 13:00, 19:00 da kurslarni shu yerga yuboraman.",
                 )
                 print(f"✅ Admin xabari yuborildi: {chat['id']} ({chat.get('title')})")
 
@@ -820,7 +820,7 @@ if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "send"
     if mode == "send":
         # python main.py send        -> darhol yuboradi (qo'lda test uchun)
-        # python main.py send 5      -> aniq 05:00:00 gacha kutib, keyin yuboradi
+        # python main.py send 8      -> aniq 08:00:00 gacha kutib, keyin yuboradi
         hour_arg = sys.argv[2] if len(sys.argv) > 2 else None
         run_send(target_hour=hour_arg)
     elif mode == "listen":
