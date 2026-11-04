@@ -2,13 +2,13 @@ name: Ko'cha kursi eslatmasi
 
 on:
   schedule:
-    - cron: "30 23 * * *"   # 04:30 Toshkent -> 05:00 post uchun
+    - cron: "30 2 * * *"    # 07:30 Toshkent -> 08:00 post uchun
     - cron: "30 7 * * *"    # 12:30 Toshkent -> 13:00 post uchun
-    - cron: "30 12 * * *"   # 17:30 Toshkent -> 18:00 post uchun
+    - cron: "30 13 * * *"   # 18:30 Toshkent -> 19:00 post uchun
   workflow_dispatch:
     inputs:
       hour:
-        description: "Qaysi post uchun (5, 13 yoki 18). Bo'sh qoldirsangiz darhol yuboradi"
+        description: "Qaysi post uchun (8, 13 yoki 19). Bo'sh qoldirsangiz darhol yuboradi"
         required: false
         default: ""
 
@@ -32,9 +32,9 @@ jobs:
         id: hour
         run: |
           case "${{ github.event.schedule }}" in
-            "30 23 * * *") echo "h=5"  >> "$GITHUB_OUTPUT" ;;
+            "30 2 * * *")  echo "h=8"  >> "$GITHUB_OUTPUT" ;;
             "30 7 * * *")  echo "h=13" >> "$GITHUB_OUTPUT" ;;
-            "30 12 * * *") echo "h=18" >> "$GITHUB_OUTPUT" ;;
+            "30 13 * * *") echo "h=19" >> "$GITHUB_OUTPUT" ;;
             *) echo "h=${{ github.event.inputs.hour }}" >> "$GITHUB_OUTPUT" ;;
           esac
 
