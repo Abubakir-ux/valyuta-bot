@@ -39,12 +39,12 @@ HEADERS = {
 OFFSET_FILE = "offset.txt"
 
 
-def wait_until_exact(hour, minute=0, max_late_minutes=10):
+def wait_until_exact(hour, minute=0, max_late_minutes=120):
     """Aniq HH:MM:00 (Toshkent vaqti) gacha kutadi va True qaytaradi.
     GitHub ishni oldinroq boshlasa, aniq soniyagacha kutib turadi.
 
     Agar GitHub ishni kech boshlagan bo'lsa:
-      - max_late_minutes (10 daqiqa) gacha kechiksa -> darhol yuboradi (True)
+      - max_late_minutes (120 daqiqa) gacha kechiksa -> darhol yuboradi (True)
       - undan ko'p kechiksa -> False qaytaradi, post BOSHQA SOATDA tashlanmasligi uchun
         o'sha post o'tkazib yuboriladi."""
     now = datetime.datetime.now()
@@ -514,89 +514,6 @@ def get_cbu_usd_rate():
 
 
 # ============================================================
-# KO'CHA KURSI: egasi botga "/kocha 12000" deb yozadi, bot saqlab,
-# keyingi postlarning eng pastiga 1$ va 100$ qiymati bilan qo'shadi.
-# (24 soatdan eski bo'lsa postga qo'shilmaydi — eskirgan narx chiqmasligi uchun)
-# ============================================================
-STREET_FILE = "street_rate.json"
-STREET_MAX_AGE_HOURS = 24
-
-
-def parse_street_command(text):
-    """'/kocha 12000' yoki '/kocha 11950 12050' -> (xarid, sotuv). Noto'g'ri bo'lsa None."""
-    qism = text.split(None, 1)
-    if len(qism) < 2:
-        return None
-    sonlar = [tozalash(x) for x in re.findall(r"\d[\d.,]*", qism[1])]
-    sonlar = [x for x in sonlar if x]
-    if len(sonlar) == 1:
-        buy = sell = sonlar[0]
-    elif len(sonlar) == 2:
-        buy, sell = sonlar
-    else:
-        return None
-    if not (5000 <= buy <= 30000 and 5000 <= sell <= 30000):
-        return None
-    return buy, sell
-
-
-def save_street_rate(buy, sell):
-    with open(STREET_FILE, "w") as f:
-        json.dump({"buy": buy, "sell": sell, "ts": time.time(),
-                   "time": time.strftime('%d.%m %H:%M')}, f)
-
-
-def load_street_rate():
-    """Yangi (24 soatdan eskirmagan) ko'cha kursini qaytaradi, bo'lmasa None."""
-    try:
-        with open(STREET_FILE) as f:
-            d = json.load(f)
-        if time.time() - d["ts"] > STREET_MAX_AGE_HOURS * 3600:
-            print("ℹ️ Ko'cha kursi 24 soatdan eski — postga qo'shilmaydi.")
-            return None
-        return d
-    except (FileNotFoundError, ValueError, KeyError):
-        return None
-
-
-def format_street_block(d):
-    def fmt(n):
-        return f"{n:,}".replace(",", " ")
-    buy, sell = d["buy"], d["sell"]
-    if buy == sell:
-        satrlar = f"💵 1$ = {fmt(buy)} so'm\n💵 100$ = {fmt(buy * 100)} so'm\n"
-    else:
-        satrlar = (f"💵 1$: xarid {fmt(buy)} | sotuv {fmt(sell)}\n"
-                   f"💵 100$: xarid {fmt(buy * 100)} | sotuv {fmt(sell * 100)}\n")
-    return f"\n<b>🏪 Ko'cha kursi:</b>\n{satrlar}<i>(yangilandi: {d['time']})</i>\n"
-
-
-def apply_pending_street_commands():
-    """Post yuborishdan oldin: egasi yuborgan, hali 'listen' ishi o'qimagan /kocha
-    buyruqlari bo'lsa, ularni shu zahoti qo'llaydi (offset'ni siljitmaydi)."""
-    if not BOT_TOKEN or not OWNER_ID:
-        return
-    try:
-        try:
-            with open(OFFSET_FILE) as f:
-                offset = int(f.read().strip())
-        except (FileNotFoundError, ValueError):
-            offset = 0
-        r = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates",
-                         params={"offset": offset, "timeout": 0}, timeout=20)
-        for u in r.json().get("result", []):
-            msg = u.get("message")
-            if (msg and str(msg.get("from", {}).get("id")) == str(OWNER_ID)
-                    and msg.get("text", "").startswith("/kocha")):
-                rt = parse_street_command(msg["text"])
-                if rt:
-                    save_street_rate(*rt)
-                    print(f"🏪 Ko'cha kursi Telegramdan yangilandi: {rt}")
-    except Exception as e:
-        print(f"⚠️ Ko'cha kursi buyruqlarini tekshirib bo'lmadi: {str(e)[:120]}")
-
-
-# ============================================================
 # REJIM 1: "send" — kurslarni kanalga yuborish
 # (GitHub Actions'da 08:00, 13:00, 19:00 da cron orqali chaqiriladi)
 # ============================================================
@@ -609,7 +526,7 @@ def run_send(target_hour=None):
     # shu soatning aniq 00-soniyasigacha kutib turamiz, keyin yuboramiz.
     if target_hour is not None:
         if not wait_until_exact(int(target_hour)):
-            notify_owner(f"⚠️ {int(target_hour):02d}:00 dagi post o'tkazib yuborildi: GitHub ishni 10 daqiqadan ko'p kechiktirdi.", call=True)
+            notify_owner(f"⚠️ {int(target_hour):02d}:00 dagi post o'tkazib yuborildi: GitHub ishni 2 soatdan ko'p kechiktirdi.", call=True)
             return
 
     print("💱 bank.uz orqali barcha banklar kursi olinmoqda...")
@@ -635,7 +552,6 @@ def run_send(target_hour=None):
         notify_owner("⚠️ Oltin narxi olinmadi (cbu.uz XPath o'zgargan bo'lishi mumkin). Xabar oltin narxisiz yuborildi.")
 
     mb_kursi = get_cbu_usd_rate()
-    apply_pending_street_commands()
 
     ey_x_val = max(r["buy_num"] for r in banks)
     ey_s_val = min(r["sell_num"] for r in banks)
@@ -676,10 +592,6 @@ def run_send(target_hour=None):
             formatlangan = f"{son:,}".replace(",", " ") if son else xom_qiymat
             xabar += f"🟡 {gram_nomi}: {formatlangan} so'm\n"
 
-    kocha = load_street_rate()
-    if kocha:
-        xabar += format_street_block(kocha)
-
     if skipped:
         xabar += f"\n<i>⚠️ Ushbu banklar o'tkazib yuborildi: {', '.join(skipped)}</i>\n"
 
@@ -694,48 +606,6 @@ def run_send(target_hour=None):
     # faqat muvaffaqiyatli yuborilgandan keyin keyingi safar solishtirish uchun eslab qolamiz
     save_last_rates(ey_x_val, ey_s_val)
     print(f"✅ Yuborildi: {len(banks)} ta bank kursi. O'tkazib yuborilganlar: {len(skipped)} ta.")
-
-
-# ============================================================
-# REJIM 3: "remind" — post oldidan egasiga ko'cha kursini yangilashni eslatadi
-# (GitHub Actions'da postdan 30 daqiqa oldin: 04:30, 12:30, 17:30)
-# ============================================================
-def run_remind(target_hour=None):
-    if not BOT_TOKEN or not OWNER_ID:
-        print("❌ BOT_TOKEN yoki OWNER_ID topilmadi.")
-        return
-
-    now = datetime.datetime.now()
-    if target_hour is not None:
-        target = now.replace(hour=int(target_hour), minute=0, second=0, microsecond=0)
-        if now >= target:
-            print("⏭ Post vaqti allaqachon o'tib ketgan (GitHub kechikkan), eslatma yuborilmadi.")
-            return
-
-    try:
-        with open(STREET_FILE) as f:
-            d = json.load(f)
-        yosh_soat = (time.time() - d["ts"]) / 3600
-    except (FileNotFoundError, ValueError, KeyError):
-        d, yosh_soat = None, None
-
-    if d and yosh_soat < 3:
-        print(f"⏭ Ko'cha kursi {yosh_soat:.1f} soat oldin yangilangan, eslatma shart emas.")
-        return
-
-    soat = f"{int(target_hour):02d}:00 dagi postga" if target_hour is not None else "keyingi postga"
-    if d:
-        narx = f"{d['buy']:,}".replace(",", " ")
-        if d["buy"] != d["sell"]:
-            narx += " / " + f"{d['sell']:,}".replace(",", " ")
-        matn = (f"🏪 Ko'cha kursini yangilaysizmi?\n"
-                f"Oxirgisi: {narx} ({d['time']}, {int(yosh_soat)} soat oldin).\n"
-                f"{soat} yangi kurs kerak bo'lsa, yozing:\n/kocha 12000")
-    else:
-        matn = (f"🏪 Ko'cha kursi hali kiritilmagan.\n"
-                f"{soat} qo'shilishi uchun yozing:\n/kocha 12000")
-    tg_send(OWNER_ID, matn, parse_mode=None)
-    print("✅ Ko'cha kursi eslatmasi yuborildi.")
 
 
 # ============================================================
@@ -793,23 +663,6 @@ def run_listen():
             tg_send(chat_id, matn)
             print(f"✅ /start javobi yuborildi: {chat_id}")
 
-        # /kocha 12000 — FAQAT egasi uchun: ko'cha kursini saqlaydi
-        if msg and msg.get("text", "").startswith("/kocha"):
-            user_id = str(msg["from"]["id"])
-            chat_id = msg["chat"]["id"]
-            if not OWNER_ID or user_id != str(OWNER_ID):
-                print(f"⛔ Begona foydalanuvchi /kocha yubordi (id={user_id}) — e'tiborsiz qoldirildi.")
-            else:
-                rt = parse_street_command(msg["text"])
-                if rt:
-                    save_street_rate(*rt)
-                    tg_send(chat_id, f"✅ Ko'cha kursi saqlandi: xarid {rt[0]}, sotuv {rt[1]}. "
-                                     f"Keyingi postlarda 1$ va 100$ bilan chiqadi.", parse_mode=None)
-                    print(f"✅ Ko'cha kursi saqlandi: {rt}")
-                else:
-                    tg_send(chat_id, "❌ Format: /kocha 12000  yoki  /kocha 11950 12050 (xarid sotuv)",
-                            parse_mode=None)
-
         # kanalga admin qilib qo'shilganda — FAQAT egasi qo'shgan bo'lsa xabar beradi
         cm = u.get("my_chat_member")
         if cm:
@@ -847,11 +700,9 @@ if __name__ == "__main__":
         run_send(target_hour=hour_arg)
     elif mode == "listen":
         run_listen()
-    elif mode == "remind":
-        run_remind(sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] else None)
     elif mode == "log":
         run_watch(post=False)
     elif mode == "watch":
         run_watch(post=True)
     else:
-        print(f"❌ Noma'lum rejim: {mode}. 'send', 'listen', 'remind', 'log' yoki 'watch' dan birini bering.")
+        print(f"❌ Noma'lum rejim: {mode}. 'send', 'listen', 'log' yoki 'watch' dan birini bering.")
